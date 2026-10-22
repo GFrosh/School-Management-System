@@ -1,0 +1,35 @@
+.termPicker {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+
+.termLabel {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.termSelect {
+  height: 40px;
+  padding: 0 var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface);
+  font: inherit;
+  color: var(--ink);
+  min-width: 260px;
+}
+
+.termSelect:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+
+.back {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

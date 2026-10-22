@@ -1,0 +1,149 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  padding: var(--s3) var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--navy-tint);
+}
+
+.count {
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.count strong {
+  color: var(--navy);
+}
+
+.maxNote {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.invalidCount {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--red);
+}
+
+.scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.table {
+  width: 100%;
+  font-size: var(--fs-sm);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  text-align: left;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--line);
+}
+
+.table tbody td,
+.table tbody th {
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+  font-weight: 400;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.admission {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scoreHead {
+  width: 120px;
+}
+
+.maxHead {
+  width: 64px;
+}
+
+.maxCell {
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.input {
+  width: 88px;
+  min-height: 36px;
+  padding: var(--s1) var(--s2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.input:focus-visible {
+  border-color: var(--navy);
+  box-shadow: var(--focus);
+}
+
+.inputInvalid {
+  border-color: var(--red);
+  background: var(--red-tint);
+}
+
+.error {
+  font-size: var(--fs-xs);
+  color: var(--red);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.rowInvalid {
+  background: #fffafa;
+}
+
+.blank {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+}
+
+@media (max-width: 560px) {
+  .admission {
+    display: none;
+  }
+}

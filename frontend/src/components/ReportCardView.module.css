@@ -1,0 +1,155 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s4);
+  box-shadow: var(--shadow-card, none);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s4);
+  align-items: flex-start;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: var(--s3);
+  margin-bottom: var(--s3);
+  flex-wrap: wrap;
+}
+
+.school {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: var(--s1);
+}
+
+.student {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.meta {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+  margin-top: var(--s1);
+}
+
+.note {
+  font-size: var(--fs-sm);
+  color: var(--ink);
+  margin-top: var(--s2);
+  font-weight: 600;
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s1);
+}
+
+.stamp {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.caption {
+  text-align: left;
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  padding-bottom: var(--s2);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--s3) var(--s2);
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+
+.table thead th {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--line);
+}
+
+.subjectCell {
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+.subject {
+  color: var(--ink);
+}
+
+.assessments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.assessments li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  color: var(--ink-muted);
+  font-size: var(--fs-xs);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.grade {
+  font-weight: 700;
+  font-size: var(--fs-md);
+}
+
+.end {
+  text-align: right;
+}
+
+.empty {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+  padding: var(--s4) 0;
+  max-width: 70ch;
+}
+
+.foot {
+  margin-top: var(--s3);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line-soft);
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+
+.foot p {
+  max-width: 70ch;
+}

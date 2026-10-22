@@ -1,0 +1,35 @@
+.page {
+  max-width: 620px;
+  margin: var(--s7) auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s5);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.code {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--ink-faint);
+}
+
+.title {
+  font-size: var(--fs-xl);
+  color: var(--navy);
+}
+
+.body {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+  line-height: 1.65;
+}
+
+.link {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--navy);
+}

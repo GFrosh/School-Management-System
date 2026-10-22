@@ -1,0 +1,25 @@
+.filters {
+  max-width: 320px;
+  margin-bottom: var(--s3);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.meta {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.link {
+  color: var(--navy);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

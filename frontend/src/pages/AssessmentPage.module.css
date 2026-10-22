@@ -1,0 +1,135 @@
+.strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s3);
+  margin-bottom: var(--s3);
+}
+
+.stripItem {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3);
+}
+
+.stripLabel {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+  margin-bottom: var(--s1);
+}
+
+.stripValue {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  gap: var(--s3);
+  justify-content: flex-end;
+  margin-top: var(--s4);
+  flex-wrap: wrap;
+}
+
+.corrections {
+  margin-top: var(--s5);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s4);
+}
+
+.correctionsTitle {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  margin-bottom: var(--s1);
+}
+
+.correctionsNote {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+  margin-bottom: var(--s3);
+  max-width: 68ch;
+}
+
+.correctionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.correctionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.correctionRow:last-child {
+  border-bottom: none;
+}
+
+.correctionName {
+  flex: 1;
+  font-size: var(--fs-sm);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.inputLabel {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.input {
+  height: 40px;
+  padding: 0 var(--s3);
+  border: 1px solid var(--line-strong, var(--line));
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface);
+  font: inherit;
+  color: var(--ink);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 1px;
+}
+
+.error {
+  font-size: var(--fs-xs);
+  color: var(--red);
+  font-weight: 600;
+}
+
+.back {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stamp {
+  margin-top: var(--s4);
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+@media (max-width: 720px) {
+  .strip {
+    grid-template-columns: 1fr;
+  }
+}

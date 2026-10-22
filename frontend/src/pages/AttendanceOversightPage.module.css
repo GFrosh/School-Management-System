@@ -1,0 +1,31 @@
+.summary {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s3) var(--s4);
+  margin-bottom: var(--s3);
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+}
+
+.summary strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.meta {
+  font-size: var(--fs-xs);
+  color: var(--ink-muted);
+}
+
+.link {
+  color: var(--navy);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

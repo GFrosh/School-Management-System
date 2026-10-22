@@ -1,0 +1,81 @@
+.wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--fs-sm);
+}
+
+.caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: var(--s3) var(--s3);
+  white-space: nowrap;
+}
+
+.sticky {
+  position: relative;
+}
+
+.table tbody td,
+.table tbody th {
+  padding: var(--s3);
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: middle;
+  text-align: left;
+  font-weight: 400;
+}
+
+.table tbody tr:nth-child(even) {
+  background: #fbfcfe;
+}
+
+.table tbody tr:hover {
+  background: var(--navy-tint);
+}
+
+.table tbody tr:last-child td,
+.table tbody tr:last-child th {
+  border-bottom: none;
+}
+
+.rowHeader {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.alignEnd {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  padding: var(--s6);
+  text-align: center;
+  color: var(--ink-muted);
+}

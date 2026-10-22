@@ -1,0 +1,42 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: 2px var(--s2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.neutral {
+  background: var(--bg);
+  color: var(--ink-muted);
+  border-color: var(--line);
+}
+
+.pending {
+  background: var(--amber-tint);
+  color: var(--amber);
+  border-color: #e8c9a6;
+}
+
+.published {
+  background: var(--green-tint);
+  color: var(--green);
+  border-color: #b7cfba;
+}
+
+.info {
+  background: var(--blue-tint);
+  color: var(--blue);
+  border-color: #b9cfeb;
+}
+
+.danger {
+  background: var(--red-tint);
+  color: var(--red);
+  border-color: #e7bdb9;
+}

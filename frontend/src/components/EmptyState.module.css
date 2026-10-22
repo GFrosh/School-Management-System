@@ -1,0 +1,27 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s7) var(--s5);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+}
+
+.title {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.explanation {
+  font-size: var(--fs-sm);
+  color: var(--ink-muted);
+  max-width: 52ch;
+}
+
+.action {
+  margin-top: var(--s3);
+}
