@@ -1,24 +1,27 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const requestId = require('./middleware/requestId');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
+const { sendSuccess } = require('./utils/respond');
 
 const app = express();
 
+app.use(requestId);
 app.use(cors());
 app.use(express.json());
-
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Backend is running properly!' });
+  sendSuccess(res, { message: 'Backend is running properly!' });
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  sendSuccess(res, { status: 'ok' });
 });
 
-// Your module routes will be mounted here later, e.g.
-// app.use('/api/students', studentRoutes);
+// Module routes will be mounted under /api/v1 here later
 
 app.use(notFound);
 app.use(errorHandler);
