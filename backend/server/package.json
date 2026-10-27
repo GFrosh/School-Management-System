@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "jest",
+    "test:watch": "jest --watch",
     "migrate": "knex migrate:latest",
     "migrate:down": "knex migrate:rollback",
     "seed": "knex seed:run",

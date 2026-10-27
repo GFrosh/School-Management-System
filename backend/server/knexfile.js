@@ -1,5 +1,5 @@
-require('dotenv').config();
 const path = require('path');
+const { localDatabaseUrl, databaseUrl } = require('./src/config');
 const migrationsDirectory = path.join(__dirname, 'db', 'migrations');
 const seedsDirectory = path.join(__dirname, 'db', 'seeds');
 
@@ -12,7 +12,22 @@ module.exports = {
   development: {
     client: 'pg',
     connection:  {
-      connectionString: process.env.LOCAL_DB_URL,
+      connectionString: localDatabaseUrl,
+      ssl: false
+    },
+    migrations: {
+      directory: migrationsDirectory,
+      tableName: 'knex_migrations'
+    },
+    seeds: {
+      directory: seedsDirectory
+    }
+  },
+
+  test: {
+    client: 'pg',
+    connection: {
+      connectionString: localDatabaseUrl,
       ssl: false
     },
     migrations: {
@@ -25,9 +40,9 @@ module.exports = {
   },
 
   production: {
-    client: 'postgresql',
+    client: 'pg',
     connection: {
-      connectionString: process.env.DB_URL,
+      connectionString: databaseUrl,
       ssl: { rejectUnauthorized: false }
     },
     pool: {
