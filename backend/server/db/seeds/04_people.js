@@ -18,12 +18,22 @@
 
 // bcrypt hash of "Password123!" (cost 10, $2b$). Generated once so the seed is
 // deterministic and does not need a native bcrypt dependency at seed time.
-const PASSWORD_HASH =
-  '$2b$10$/awKeTXEAA8elNghqoMpHuq7Wzs641wRTIxrIITRWSXk8hxQ8RELS';
+
+const bcrypt = require('bcryptjs');
+const { adminEmail, adminPassword, adminUser } = require('../../src/config/index');
+
+
+if (!adminEmail || !adminPassword) {
+  throw new Error('Missing DB_ADMIN_EMAIL or DB_ADMIN_PASSWORD in .env');
+}
+
+const saltRounds = 10;
+const hashedPassword = bcrypt.hashSync(adminPassword, saltRounds);
+
 
 const ADMIN = {
-  email: 'admin@school.edu.ng',
-  display: 'Mrs. Adaeze Balogun',
+  email: adminEmail,
+  display: adminUser,
   roles: ['admin'],
 };
 
@@ -83,7 +93,7 @@ const ensureUser = async (knex, { email, status = 'active' }) => {
   const existing = await knex('users').where({ email }).first('id');
   if (existing) return existing.id;
   const [row] = await knex('users')
-    .insert({ email, password_hash: PASSWORD_HASH, status })
+    .insert({ email, password_hash: hashedPassword, status })
     .returning('id');
   return row.id ?? row;
 };
