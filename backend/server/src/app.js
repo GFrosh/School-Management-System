@@ -6,6 +6,7 @@ const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 const UserRepository = require('../db/repositories/user.repository');
 const { sendSuccess } = require('./utils/respond');
+const authRoutes = require('./modules/auth/auth.routes');
 
 const app = express();
 
@@ -21,6 +22,8 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   sendSuccess(res, { status: 'ok' });
 });
+
+app.use('/api/v1/auth', authRoutes);
 
 // Module routes will be mounted under /api/v1 here later
 
