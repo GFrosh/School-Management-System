@@ -1,0 +1,45 @@
+erDiagram
+    users ||--o| students : "account for"
+    users ||--o| teachers : "account for"
+    users ||--o| parents  : "account for"
+    users ||--o{ user_roles : "is granted"
+    users ||--o{ refresh_tokens : "owns"
+    roles ||--o{ user_roles : "grants"
+ 
+    students ||--o{ student_guardians : "has"
+    parents  ||--o{ student_guardians : "guards"
+ 
+    academic_sessions ||--o{ terms : "is divided into"
+    academic_sessions ||--o{ enrolments : "scopes"
+    terms ||--o{ teaching_assignments : "scopes"
+    classes ||--o{ enrolments : "receives"
+    classes ||--o{ teaching_assignments : "is taught in"
+    subjects ||--o{ teaching_assignments : "is taught as"
+    teachers ||--o{ teaching_assignments : "delivers"
+    students ||--o{ enrolments : "is enrolled via"
+ 
+    teaching_assignments ||--o{ assessments : "is assessed by"
+    assessments ||--o{ results : "is scored in"
+    enrolments ||--o{ results : "receives"
+    results ||--o{ result_revisions : "is corrected by"
+    teaching_assignments ||--o{ attendance_registers : "opens"
+    attendance_registers ||--o{ attendance_records : "contains"
+    enrolments ||--o{ attendance_records : "is recorded in"
+ 
+    enrolments {
+        uuid id PK
+        uuid student_id FK
+        uuid class_id FK
+        uuid session_id FK
+        text status
+        date enrolled_on
+        date ended_on
+    }
+    results {
+        uuid id PK
+        uuid assessment_id FK
+        uuid enrolment_id FK
+        numeric score
+        text status
+        timestamptz published_at
+    }

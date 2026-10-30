@@ -13,8 +13,10 @@ module.exports = {
   adminUser: process.env.DB_ADMIN_USER,
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET,
-    accessTtlSeconds: 900, // 15 minutes
-    refreshTtlDays: 30,
+    refreshSecret: process.env.JWT_REFRESH_SECRET,
+    accessTtlSeconds: '15m',
+    refreshTtlDays: '30d',
+    lockoutDurationMinutes: 15
   },
 };
 

@@ -1,16 +1,15 @@
-const AppError = require('../utils/AppError');
-
 module.exports = (err, req, res, next) => {
   let status = 500;
   let code = 'INTERNAL_ERROR';
   let message = 'Something went wrong';
   let details = [];
 
-  if (err instanceof AppError) {
-    status = err.status;
-    code = err.code;
+  // FIX: Look for the 'isOperational' property that ApiResponse.error() attaches to its instances
+  if (err.isOperational) {
+    status = err.status || 400;
+    code = err.code || 'BAD_REQUEST';
     message = err.message;
-    details = err.details;
+    details = err.details || [];
   } else if (err.code === '23505') {
     // PostgreSQL unique constraint violation
     status = 409;

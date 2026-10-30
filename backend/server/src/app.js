@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const requestId = require('./middleware/requestId');
-const notFound = require('./middleware/notFound');
-const errorHandler = require('./middleware/errorHandler');
-const UserRepository = require('../db/repositories/user.repository');
-const { sendSuccess } = require('./utils/respond');
-const authRoutes = require('./modules/auth/auth.routes');
+const requestId = require('./middlewares/requestId');
+const notFound = require('./middlewares/notFound');
+const errorHandler = require('./middlewares/errorHandler');
+const ApiResponse = require("./utils/Response");
+const userRouter = require("./routes/user.route");
+
 
 const app = express();
 
@@ -20,18 +20,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  sendSuccess(res, { status: 'ok' });
+  ApiResponse.success(res, { status: 'ok' }, null, 200);
 });
 
-app.use('/api/v1/auth', authRoutes);
+
 
 // Module routes will be mounted under /api/v1 here later
 
-app.get('/api/v1/users', async (req, res) => {
-  const userRepository = new UserRepository();
-  res.status(200).json(await userRepository.getAllUsers());
-});
-
+app.use("/api/v1/users", userRouter);
 
 app.use(notFound);
 app.use(errorHandler);

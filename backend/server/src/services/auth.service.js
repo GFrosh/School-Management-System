@@ -1,9 +1,9 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const AppError = require('../../utils/AppError');
-const config = require('../../config');
-const repo = require('./auth.repository');
+const AppError = require('../utils/AppError');
+const config = require('../config');
+const repo = require('../repositories/auth.repository');
 
 // Compared against when the email doesn't exist, so both failures take similar time
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', 12);
