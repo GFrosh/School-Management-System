@@ -11,7 +11,6 @@ import type {
   CorrectionResult,
   Enrolment,
   Guardian,
-  Me,
   MeResultGroup,
   Register,
   ReportCard,
@@ -26,6 +25,7 @@ import type {
   Term,
   Envelope,
   LoginResult,
+  MeResponse,
   User,
 } from './types';
 import type {
@@ -43,11 +43,11 @@ import type {
 
 /* 7.3 authentication */
 export const login = (body: { email: string; password: string }) =>
-  apiRequest<LoginResult>('/auth/login', { method: 'POST', body });
-export const fetchMe = () => apiRequest<Me>('/auth/me');
-export const logout = () => apiRequest<{ loggedOut: boolean }>('/auth/logout', { method: 'POST' });
+  apiRequest<LoginResult>('/users/login', { method: 'POST', body });
+export const fetchMe = () => apiRequest<MeResponse>('/users/me');
+export const logout = () => apiRequest<{ loggedOut: boolean }>('/users/logout', { method: 'POST' });
 export const changePassword = (body: { currentPassword: string; newPassword: string }) =>
-  apiRequest<{ changed: boolean }>('/auth/password', { method: 'POST', body });
+  apiRequest<{ changed: boolean }>('/users/password', { method: 'POST', body });
 
 /* 7.4 academic structure */
 export const fetchSessions = (current?: boolean) =>

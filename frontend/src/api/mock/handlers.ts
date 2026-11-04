@@ -142,7 +142,7 @@ export async function mockRequest(
     return ok({ changed: true }, 200);
   }
 
-  if (method === 'GET' && pathname === '/auth/me') {
+  if (method === 'GET' && pathname === '/users/me') {
     const session = currentSession();
     const { password: _pw, ...safe } = user;
     const scope: Record<string, unknown> = {
@@ -154,7 +154,7 @@ export async function mockRequest(
     if (user.profiles.parentId) {
       scope.linkedStudents = state.guardians.filter((g) => g.parentId === user.profiles.parentId).length;
     }
-    return ok({ ...safe, scope }, 200);
+    return ok({ user: { ...safe, scope } }, 200);
   }
 
   const isAdmin = user.roles.includes('admin');

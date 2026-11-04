@@ -115,7 +115,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   });
 
   if (res.status === 401 && !options.retried) {
-    const refresh = await fetch(`${BASE}/auth/refresh`, {
+    const refresh = await fetch(`${BASE}/users/refresh`, {
       method: 'POST',
       credentials: 'include',
     });

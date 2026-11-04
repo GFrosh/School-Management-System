@@ -15,14 +15,14 @@ interface AuthValue {
 const AuthContext = createContext<AuthValue | null>(null);
 
 /**
- * The auth context stores user, roles and scope from GET /auth/me. Route guards
+ * The auth context stores user, roles and scope from GET /users/me. Route guards
  * read it; components never infer permission from a role name alone.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
 
   const meQuery = useQuery({
-    queryKey: ['auth', 'me'],
+    queryKey: ['users', 'me'],
     queryFn: api.fetchMe,
     retry: false,
     staleTime: 60_000,
@@ -32,8 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const result = await api.login({ email, password });
       setAccessToken(result.data.accessToken);
-      await queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
-      await queryClient.fetchQuery({ queryKey: ['auth', 'me'], queryFn: api.fetchMe });
+      await queryClient.invalidateQueries({ queryKey: ['users', 'me'] });
+      await queryClient.fetchQuery({ queryKey: ['users', 'me'], queryFn: api.fetchMe });
     },
     [queryClient],
   );
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   const value = useMemo<AuthValue>(() => {
-    const me = meQuery.data?.data ?? null;
+    const me = meQuery.data?.data.user ?? null;
     return {
       me,
       loading: meQuery.isLoading,

@@ -73,6 +73,10 @@ export interface Me extends User {
   };
 }
 
+export interface MeResponse {
+  user: Me;
+}
+
 export interface LoginResult {
   accessToken: string;
   expiresIn: number;
