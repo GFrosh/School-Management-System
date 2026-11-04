@@ -1,6 +1,6 @@
 const config = require("../config/index");
 const ApiResponse = require('../utils/Response');
-const { loginUser, getAllUsers } = require("../services/user.service");
+const { loginUser, getAllUsers, getUserById, getUserSessionById, refreshUserSession, revokeUserSession, revokeAllUserSessions } = require("../services/user.service");
 
 const handleLogin = async (req, res) => {
 	const { email, password } = req.body; 
@@ -32,7 +32,57 @@ const fetchAll = async (req, res) => {
 }
 
 
+const getSession = async (req, res) => {
+	const user = await getUserById(req.user.sub);
+
+	if (!user) {
+		throw ApiResponse.error(404, "NOT_FOUND", "User Not Found");
+	}
+
+	return ApiResponse.success(res, user, null, 200);
+}
+
+
+
+const refreshSession = async (req, res) => {
+	const user = await refreshUserSession(req.user.token, req.user.sub);
+
+	return ApiResponse.success(res, user, null, 200);
+}
+
+
+
+const revokeSession = async (req, res) => {
+	const user = await getUserById(req.user.sub);
+	if (!user) throw ApiResponse.error(404, "NOT_FOUND", "User Not Found");
+	const session = await getUserSessionById(req.user.sessionId);
+
+	if (!session) {
+		throw ApiResponse.error(404, "NOT_FOUND", "Session Not Found");
+	}
+
+	await revokeUserSession(req.user.sessionId);
+
+	return ApiResponse.success(res, user, null, 200);
+}
+
+
+
+
+const revokeAllUserSessionsHandler = async (req, res) => {
+	const user = await getUserById(req.user.sub);
+	if (!user) throw ApiResponse.error(404, "NOT_FOUND", "User Not Found");
+	await revokeAllUserSessions(req.user.sub);
+	return ApiResponse.success(res, req.user, null, 200);
+}
+
+
+
 module.exports = {
 	handleLogin,
-	fetchAll
+	fetchAll,
+	getSession,
+	refreshSession,
+	revokeSession,
+	revokeAllUserSessionsHandler
 };

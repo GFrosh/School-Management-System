@@ -1,7 +1,7 @@
 const path = require('path');
-const { localDatabaseUrl, databaseUrl } = require('./src/config');
-const migrationsDirectory = path.join(__dirname, 'db', 'migrations');
-const seedsDirectory = path.join(__dirname, 'db', 'seeds');
+const { localDatabaseUrl, databaseUrl } = require('./src/config/index');
+const migrationsDirectory = path.join(__dirname, "src", 'db', 'migrations');
+const seedsDirectory = path.join(__dirname, 'src', 'db', 'seeds');
 
 
 /**

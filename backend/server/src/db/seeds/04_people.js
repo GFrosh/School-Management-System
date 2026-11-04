@@ -8,32 +8,35 @@
  *           and the §3.2 rule that a guardian link carries a relationship.
  *
  * Two demo logins are enough to exercise every path in §7:
- *   admin@school.edu.ng     — admin
- *   t.okafor@school.edu.ng  — teacher AND parent (the §3.2 case in one person)
+ *   admin@school.edu.ng     — admin (uses adminPassword from config)
+ *   t.okafor@school.edu.ng  — teacher AND parent (uses generic password)
  * Remaining students exist as records with NO account, which is the day-one
  * reality described in §3.1 and must not be seeded away.
  *
- * All demo passwords are: Password123!
+ * All non-admin demo passwords are: Password123!
  */
 
-// bcrypt hash of "Password123!" (cost 10, $2b$). Generated once so the seed is
-// deterministic and does not need a native bcrypt dependency at seed time.
-
 const bcrypt = require('bcryptjs');
-const { adminEmail, adminPassword, adminUser } = require('../../src/config/index');
-
+const { adminEmail, adminPassword, adminUser } = require('../../config/index');
 
 if (!adminEmail || !adminPassword) {
   throw new Error('Missing DB_ADMIN_EMAIL or DB_ADMIN_PASSWORD in .env');
 }
 
 const saltRounds = 10;
-const hashedPassword = bcrypt.hashSync(adminPassword, saltRounds);
 
+// Admin password from config/env
+const adminHashedPassword = bcrypt.hashSync(adminPassword, saltRounds);
+
+// Generic default password for all other users (teachers, students, parents)
+const genericHashedPassword = bcrypt.hashSync('Password123!', saltRounds);
 
 const ADMIN = {
   email: adminEmail,
-  display: adminUser,
+  first_name: adminUser.first_name,
+  last_name: adminUser.last_name,
+  middle_name: adminUser.middle_name,
+  status: 'active',
   roles: ['admin'],
 };
 
@@ -75,7 +78,7 @@ const PARENTS = [
   { first_name: 'Kemi', last_name: 'Ade', phone: '+2348031110004', email: 'kemi.ade@example.com', account: null },
 ];
 
-// student admission_number -> guardian index in PARENTS, with relationship.
+// student admission_number -> parent email, with relationship.
 const GUARDIAN_LINKS = [
   { student: 'SMS/2026/0109', parent: 't.okafor@school.edu.ng', relationship: 'father', is_primary: true },
   { student: 'SMS/2026/0101', parent: 'ngozi.nwosu@example.com', relationship: 'mother', is_primary: true },
@@ -88,12 +91,19 @@ const roleIdByRole = async (knex) => {
   return new Map(rows.map((r) => [r.name, r.id]));
 };
 
-const ensureUser = async (knex, { email, status = 'active' }) => {
+const ensureUser = async (knex, { email, first_name, last_name, middle_name = null, status = 'active', passwordHash = genericHashedPassword }) => {
   if (!email) return null;
   const existing = await knex('users').where({ email }).first('id');
   if (existing) return existing.id;
   const [row] = await knex('users')
-    .insert({ email, password_hash: hashedPassword, status })
+    .insert({
+      email,
+      password_hash: passwordHash,
+      status,
+      first_name,
+      last_name,
+      middle_name,
+    })
     .returning('id');
   return row.id ?? row;
 };
@@ -115,67 +125,84 @@ exports.seed = async function seed(knex) {
   const roles = await roleIdByRole(knex);
 
   // ---------------------------------------------------------------- admin
-  const adminId = await ensureUser(knex, { email: ADMIN.email });
+  const adminId = await ensureUser(knex, {
+    email: ADMIN.email,
+    first_name: ADMIN.first_name,
+    last_name: ADMIN.last_name,
+    middle_name: ADMIN.middle_name,
+    passwordHash: adminHashedPassword, // Uses config adminPassword
+  });
   await grantRoles(knex, adminId, ADMIN.roles, roles);
 
   // -------------------------------------------------------------- teachers
   for (const t of TEACHERS) {
-    const userId = await ensureUser(knex, { email: t.email });
+    const userId = await ensureUser(knex, {
+      email: t.email,
+      first_name: t.first_name,
+      last_name: t.last_name,
+    });
     await grantRoles(knex, userId, t.roles, roles);
 
     await knex('teachers')
       .insert({
         user_id: userId,
         staff_number: t.staff_number,
-        first_name: t.first_name,
-        last_name: t.last_name,
         employment_date: t.employment_date,
       })
       .onConflict('staff_number')
-      .merge(['user_id', 'first_name', 'last_name', 'employment_date', 'updated_at']);
-
+      .merge(['user_id', 'employment_date', 'updated_at']);
   }
 
   // -------------------------------------------------------------- students
   for (const s of STUDENTS) {
     // Students WITHOUT an email get no account — deliberately (§3.1).
-    const userId = s.email ? await ensureUser(knex, { email: s.email }) : null;
+    const userId = s.email
+      ? await ensureUser(knex, {
+          email: s.email,
+          first_name: s.first_name,
+          last_name: s.last_name,
+          middle_name: s.middle_name,
+        })
+      : null;
     if (userId) await grantRoles(knex, userId, ['student'], roles);
 
     await knex('students')
       .insert({
         user_id: userId,
         admission_number: s.admission_number,
-        first_name: s.first_name,
-        middle_name: s.middle_name,
-        last_name: s.last_name,
         date_of_birth: s.date_of_birth,
         gender: s.gender,
         admission_date: '2026-09-07',
       })
       .onConflict('admission_number')
-      .merge(['user_id', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'gender', 'updated_at']);
+      .merge(['user_id', 'date_of_birth', 'gender', 'updated_at']);
   }
 
   // --------------------------------------------------------------- parents
   const parentIdByEmail = new Map();
   for (const p of PARENTS) {
+    let userId;
     // A guardian who is also a teacher reuses that teacher's account.
-    const userId = p.account
-      ? await knex('users').where({ email: p.account.split(':')[1] }).first('id').then((r) => r?.id ?? null)
-      : await ensureUser(knex, { email: p.email });
+    if (p.account) {
+      const accountEmail = p.account.split(':')[1];
+      const userRow = await knex('users').where({ email: accountEmail }).first('id');
+      userId = userRow?.id ?? null;
+    } else {
+      userId = await ensureUser(knex, {
+        email: p.email,
+        first_name: p.first_name,
+        last_name: p.last_name,
+      });
+    }
 
     if (userId) await grantRoles(knex, userId, ['parent'], roles);
 
-    // parents.email is NOT unique in the schema (a contact address may repeat or
-    // differ from the login address), so resolve by lookup, not ON CONFLICT.
+    // parents.email is NOT unique in the schema, so resolve by lookup, not ON CONFLICT.
     const existing = await knex('parents').where({ email: p.email }).first('id');
 
     if (existing) {
       await knex('parents').where({ id: existing.id }).update({
         user_id: userId,
-        first_name: p.first_name,
-        last_name: p.last_name,
         phone: p.phone,
         updated_at: knex.fn.now(),
       });
@@ -184,8 +211,6 @@ exports.seed = async function seed(knex) {
       const [row] = await knex('parents')
         .insert({
           user_id: userId,
-          first_name: p.first_name,
-          last_name: p.last_name,
           phone: p.phone,
           email: p.email,
         })

@@ -65,7 +65,46 @@ class UserRepository {
      * @returns {void}
      */
     async updateUserRefreshToken(data) {
-        return await db('refresh_tokens').insert(data);
+        return await db('refresh_tokens').insert({ ...data, updated_at: db.fn.now() });
+    }
+
+
+
+    async getRefreshTokenByHash(tokenHash) {
+        return await db('refresh_tokens').where({ token_hash: tokenHash }).first();
+    }
+
+
+    
+
+    /**
+     * 
+     * @param {*} sessionId 
+     * @returns {object}
+     */
+    async getUserSessionById(sessionId) {
+        return await db('refresh_tokens').where({ id: sessionId }).first();
+    }
+
+
+    /**
+     * 
+     * @param {*} sessionId 
+     * @returns {void}
+     */
+    async revokeUserRefreshToken(sessionId) {
+        return await db('refresh_tokens').where({ id: sessionId }).update({ revoked_at: db.fn.now() });
+    }
+
+
+
+    /**
+     * 
+     * @param {*} userId 
+     * @returns {void}
+     */
+    async revokeAllUserRefreshTokens(userId) {
+        return await db('refresh_tokens').where({ user_id: userId }).update({ revoke_at: db.fn.now() });
     }
 
 
@@ -75,24 +114,26 @@ class UserRepository {
      * @returns 
      */
     async getUserProfiles(id) {
-        const result = await db('users')
-            .leftJoin('teachers as t', 't.user_id', 'users.id')
-            .leftJoin('parents as p', 'p.user_id', 'users.id')
-            .leftJoin('students as s', 's.user_id', 'users.id')
-            .where('users.id', userid)
+        const result = await db('users as u')
+            .leftJoin('teachers as t', 't.user_id', 'u.id')
+            .leftJoin('parents as p', 'p.user_id', 'u.id')
+            .leftJoin('students as s', 's.user_id', 'u.id')
+            .where('u.id', id)
             .select(
-            't.id as t_id', 't.name as t_name',
-            'p.id as p_id', 'p.name as p_name',
-            's.id as s_id', 's.name as s_name'
+                't.id as t_id',
+                'p.id as p_id',
+                's.id as s_id',
+                db.raw("coalesce(u.first_name || ' ' || u.last_name) as user_name")
             )
             .first();
 
         if (!result) return { teacher: null, parent: null, student: null };
 
         return {
-            teacher: result.t_id ? { id: result.t_id, name: result.t_name } : null,
-            parent: result.p_id ? { id: result.p_id, name: result.p_name } : null,
-            student: result.s_id ? { id: result.s_id, name: result.s_name } : null,
+            teacherId: result.t_id ? result.t_id : null,
+            parentId: result.p_id ? result.p_id : null,
+            studentId: result.s_id ? result.s_id : null,
+            userName: result.user_name ? result.user_name : null
         };
     }
 

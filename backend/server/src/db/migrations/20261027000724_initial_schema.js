@@ -7,10 +7,10 @@
  *   §7   API contract (status vocabularies the endpoints rely on)
  *
  * Notes
- *  - Requires PostgreSQL >= 13 for gen_random_uuid() and the citext extension.
- *  - UUID primary keys everywhere except `roles`, which is a four-row lookup table.
- *  - snake_case in the database; the repository layer maps to camelCase on the wire (§7.1).
- *  - Every table carries created_at / updated_at (timestamptz) as §5.5 requires.
+ *   - Requires PostgreSQL >= 13 for gen_random_uuid() and the citext extension.
+ *   - UUID primary keys everywhere except `roles`, which is a four-row lookup table.
+ *   - snake_case in the database; the repository layer maps to camelCase on the wire (§7.1).
+ *   - Every table carries created_at / updated_at (timestamptz) as §5.5 requires.
  */
 
 /* eslint-disable func-names */
@@ -66,6 +66,9 @@ exports.up = async function up(knex) {
     t.specificType('email', 'citext').notNullable().unique();
     t.text('password_hash').notNullable();
     t.text('status').notNullable().defaultTo('active');
+    t.text('first_name').notNullable();
+    t.text('last_name').notNullable();
+    t.text('middle_name');
     // §7.1 rate limiting (5 attempts / 15 min) and §7.2 ACCOUNT_LOCKED need state.
     t.integer('failed_attempts').notNullable().defaultTo(0);
     t.timestamp('locked_until', { useTz: true });
@@ -104,9 +107,6 @@ exports.up = async function up(knex) {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('user_id').unique().references('id').inTable('users').onDelete('SET NULL');
     t.text('admission_number').notNullable().unique();
-    t.text('first_name').notNullable();
-    t.text('middle_name');
-    t.text('last_name').notNullable();
     t.date('date_of_birth').notNullable();
     t.text('gender');
     t.date('admission_date');
@@ -120,7 +120,7 @@ exports.up = async function up(knex) {
     "ALTER TABLE students ADD CONSTRAINT students_gender_check CHECK (gender IS NULL OR gender IN ('male','female','other'))",
   );
   await knex.raw(
-    'CREATE INDEX students_name_idx ON students (lower(last_name), lower(first_name))',
+    'CREATE INDEX students_name_idx ON students (lower(admission_number))',
   );
 
   // ---------------------------------------------------------------- teachers
@@ -128,9 +128,6 @@ exports.up = async function up(knex) {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('user_id').unique().references('id').inTable('users').onDelete('SET NULL');
     t.text('staff_number').notNullable().unique();
-    t.text('first_name').notNullable();
-    t.text('middle_name');
-    t.text('last_name').notNullable();
     t.date('employment_date');
     t.text('status').notNullable().defaultTo('active');
     stamps(knex, t);
@@ -143,10 +140,7 @@ exports.up = async function up(knex) {
   await knex.schema.createTable('parents', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('user_id').unique().references('id').inTable('users').onDelete('SET NULL');
-    t.text('first_name').notNullable();
-    t.text('last_name').notNullable();
     t.text('phone');
-    // Contact address may differ from the login address, so it is not unique.
     t.specificType('email', 'citext');
     stamps(knex, t);
   });
@@ -165,7 +159,7 @@ exports.up = async function up(knex) {
   });
   await knex.raw(
     `ALTER TABLE student_guardians ADD CONSTRAINT student_guardians_relationship_check
-       CHECK (relationship IS NULL OR relationship IN (${quoted(ATTENDANCE_RELATIONSHIP)}))`,
+        CHECK (relationship IS NULL OR relationship IN (${quoted(ATTENDANCE_RELATIONSHIP)}))`,
   );
   await knex.raw('CREATE INDEX student_guardians_parent_id_idx ON student_guardians (parent_id)');
 
@@ -219,7 +213,6 @@ exports.up = async function up(knex) {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.text('name').notNullable().unique();
     t.smallint('level').notNullable();
-    // Convenience pointer only — never the authorization path for teaching (§5.3).
     t.uuid('class_teacher_id').references('id').inTable('teachers').onDelete('SET NULL');
     stamps(knex, t);
   });
@@ -248,13 +241,13 @@ exports.up = async function up(knex) {
   // C1 — one ACTIVE placement per student per session; closed rows are unconstrained.
   await knex.raw(
     `CREATE UNIQUE INDEX enrolments_one_active_per_session
-       ON enrolments (student_id, session_id) WHERE status = 'active'`,
+        ON enrolments (student_id, session_id) WHERE status = 'active'`,
   );
   // C1b — a live row (active/promoted/repeated) may not share a session with another (§3.3).
   await knex.raw(
     `CREATE UNIQUE INDEX enrolments_one_live_per_session
-       ON enrolments (student_id, session_id)
-       WHERE status IN ('active', 'promoted', 'repeated')`,
+        ON enrolments (student_id, session_id)
+        WHERE status IN ('active', 'promoted', 'repeated')`,
   );
   await knex.raw('CREATE INDEX enrolments_session_class_idx ON enrolments (session_id, class_id)');
   await knex.raw('CREATE INDEX enrolments_student_idx ON enrolments (student_id)');
@@ -275,7 +268,7 @@ exports.up = async function up(knex) {
   // C4 — one accountable teacher per class/subject/term, co-teaching still allowed.
   await knex.raw(
     `CREATE UNIQUE INDEX teaching_assignments_one_primary
-       ON teaching_assignments (class_id, subject_id, term_id) WHERE is_primary = TRUE`,
+        ON teaching_assignments (class_id, subject_id, term_id) WHERE is_primary = TRUE`,
   );
   await knex.raw(
     'CREATE INDEX teaching_assignments_teacher_term_idx ON teaching_assignments (teacher_id, term_id)',
@@ -286,7 +279,6 @@ exports.up = async function up(knex) {
   await knex.schema.createTable('assessments', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('teaching_assignment_id').notNullable();
-    // Redundant on purpose: kept consistent with the assignment by C7 below.
     t.uuid('term_id').notNullable();
     t.text('name').notNullable(); // 'CA1', 'Exam'
     t.text('type').notNullable(); // ca | exam | project
@@ -298,8 +290,8 @@ exports.up = async function up(knex) {
   // C7 — the term on the assessment can never disagree with the assignment's term.
   await knex.raw(
     `ALTER TABLE assessments ADD CONSTRAINT assessments_assignment_term_fk
-       FOREIGN KEY (teaching_assignment_id, term_id)
-       REFERENCES teaching_assignments (id, term_id) ON DELETE RESTRICT`,
+        FOREIGN KEY (teaching_assignment_id, term_id)
+        REFERENCES teaching_assignments (id, term_id) ON DELETE RESTRICT`,
   );
   await knex.raw(
     "ALTER TABLE assessments ADD CONSTRAINT assessments_type_check CHECK (type IN ('ca','exam','project'))",
@@ -332,12 +324,11 @@ exports.up = async function up(knex) {
   // A published row must know when it was published; an unpublished one must not claim to be.
   await knex.raw(
     `ALTER TABLE results ADD CONSTRAINT results_published_at_check
-       CHECK ((status = 'published' AND published_at IS NOT NULL)
-           OR (status <> 'published' AND published_at IS NULL))`,
+        CHECK ((status = 'published' AND published_at IS NOT NULL)
+            OR (status <> 'published' AND published_at IS NULL))`,
   );
 
-  // C3 — score <= assessment.maximum_score. A CHECK cannot subquery another table,
-  // so this is a trigger (§5.6).
+  // C3 — score <= assessment.maximum_score via trigger (§5.6).
   await knex.raw(`
     CREATE OR REPLACE FUNCTION enforce_score_within_maximum() RETURNS trigger AS $$
     DECLARE
@@ -391,12 +382,12 @@ exports.up = async function up(knex) {
   });
   await knex.raw(
     `ALTER TABLE result_revisions ADD CONSTRAINT result_revisions_status_check
-       CHECK (status IN (${quoted(REVISION_STATUS)}))`,
+        CHECK (status IN (${quoted(REVISION_STATUS)}))`,
   );
   // §3.2 — the approver must be someone other than the requester.
   await knex.raw(
     `ALTER TABLE result_revisions ADD CONSTRAINT result_revisions_separation_check
-       CHECK (approved_by IS NULL OR approved_by <> requested_by)`,
+        CHECK (approved_by IS NULL OR approved_by <> requested_by)`,
   );
   await knex.raw('CREATE INDEX result_revisions_result_idx ON result_revisions (result_id)');
 
@@ -420,7 +411,7 @@ exports.up = async function up(knex) {
   });
   await knex.raw(
     `ALTER TABLE attendance_registers ADD CONSTRAINT attendance_registers_status_check
-       CHECK (status IN (${quoted(REGISTER_STATUS)}))`,
+        CHECK (status IN (${quoted(REGISTER_STATUS)}))`,
   );
   await knex.raw(
     'ALTER TABLE attendance_registers ADD CONSTRAINT attendance_registers_period_check CHECK (period_no >= 0)',
@@ -441,9 +432,8 @@ exports.up = async function up(knex) {
   });
   await knex.raw(
     `ALTER TABLE attendance_records ADD CONSTRAINT attendance_records_status_check
-       CHECK (status IN (${quoted(ATTENDANCE_STATUS)}))`,
+        CHECK (status IN (${quoted(ATTENDANCE_STATUS)}))`,
   );
-  // §3.4 — the history query is "this pupil, this date range".
   await knex.raw('CREATE INDEX attendance_records_enrolment_idx ON attendance_records (enrolment_id)');
 };
 
@@ -452,12 +442,9 @@ exports.up = async function up(knex) {
  * @returns { Promise<void> }
  */
 exports.down = async function down(knex) {
-  // Reverse dependency order. dropTableIfExists so a partial failure can be
-  // rolled back without manual cleanup.
   await knex.schema.dropTableIfExists('attendance_records');
   await knex.schema.dropTableIfExists('attendance_registers');
   await knex.schema.dropTableIfExists('result_revisions');
-  // Dropping the table removes its trigger, so the function can go next.
   await knex.schema.dropTableIfExists('results');
   await knex.raw('DROP FUNCTION IF EXISTS enforce_score_within_maximum()');
   await knex.schema.dropTableIfExists('assessments');
@@ -476,10 +463,7 @@ exports.down = async function down(knex) {
   await knex.schema.dropTableIfExists('users');
   await knex.schema.dropTableIfExists('roles');
 
-  // Best effort: the extension may be shared with another schema, so a failure
-  // here must not abort the rollback.
   await knex.raw('DROP EXTENSION IF EXISTS citext').catch(() => {});
 };
 
-// One transaction for the whole migration: a half-created schema is worse than none.
 exports.config = { transaction: true };
