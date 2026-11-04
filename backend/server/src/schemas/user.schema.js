@@ -8,4 +8,14 @@ const UserLoginSchema = z.object({
   })
 });
 
-module.exports = { UserLoginSchema };
+
+const passwordChangeSchema = z.object({
+  body: z.object({
+    userId: z.string().uuid("Invalid user ID format"),
+    currentPassword: z.string().min(1, "Current password cannot be empty"),
+    newPassword: z.string().min(8, "New password must be at least 8 characters long")
+      .regex(/[A-Z]/, "New password must contain at least one uppercase letter")
+  })
+})
+
+module.exports = { UserLoginSchema, passwordChangeSchema };

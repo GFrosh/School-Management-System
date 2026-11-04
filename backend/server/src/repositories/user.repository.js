@@ -140,6 +140,30 @@ class UserRepository {
 
 
     /**
+     * 
+     * @param {*} userId 
+     * @param {*} newPasswordHash 
+     * @returns 
+     */
+    async updatePasswordAndRevokeAllSessions(userId, newPasswordHash) {
+        return await db.transaction(async (trx) => {
+            await trx("users")
+                .where({ id: userId })
+                .update({
+                    password_hash: newPasswordHash,
+                    updated_at: trx.fn.now()
+                });
+            
+            await trx("refresh_tokens")
+                .where({ user_id: userId })
+                .whereNull("revoked_at")
+                .update({ revoked_at: trx.fn.now() });
+        });
+    }
+
+
+
+    /**
      * Gets all users from the database.
      * @returns {Promise<Array>} An array of user objects.
      */

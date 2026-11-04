@@ -78,11 +78,29 @@ const revokeAllUserSessionsHandler = async (req, res) => {
 
 
 
+const changePasswordHandler = async (req, res) => {
+	const userId = req.user.sub;
+	const { currentPassword, newPassword } = req.body;
+	await changeUserPassword(userId, currentPassword, newPassword);
+
+
+	res.clearCookie('refreshToken', {
+		httpOnly: true,
+		secure: config.nodeEnv === 'production',
+		sameSite: 'strict',
+	});
+
+	return ApiResponse.success(res, "Password updated successfully", null, 200);
+}
+
+
+
 module.exports = {
 	handleLogin,
 	fetchAll,
 	getSession,
 	refreshSession,
 	revokeSession,
-	revokeAllUserSessionsHandler
+	revokeAllUserSessionsHandler,
+	changePasswordHandler
 };

@@ -23,7 +23,7 @@ if (!adminEmail || !adminPassword) {
   throw new Error('Missing DB_ADMIN_EMAIL or DB_ADMIN_PASSWORD in .env');
 }
 
-const saltRounds = 10;
+const saltRounds = 12;
 
 // Admin password from config/env
 const adminHashedPassword = bcrypt.hashSync(adminPassword, saltRounds);

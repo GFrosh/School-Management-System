@@ -174,6 +174,8 @@ async function revokeUserSession(sessionId) {
   await userRepo.revokeUserRefreshToken(sessionId);
 }
 
+
+
 async function revokeAllUserSessions(userId) {
   const user = await userRepo.getUserById(userId);
   if (!user) throw ApiResponse.error(404, "NOT_FOUND", "User Not Found");
@@ -181,4 +183,36 @@ async function revokeAllUserSessions(userId) {
   await userRepo.revokeAllUserRefreshTokens(userId);
 }
 
-module.exports = { loginUser, hashToken, getAllUsers, getUserById, getUserSessionById, refreshUserSession, revokeUserSession, revokeAllUserSessions };
+
+
+async function changeUserPassword(userId, currentPassword, newPassword) {
+  const user = await userRepo.getUserById(userId);
+  if (!user) throw ApiResponse.error(404, "NOT_FOUND", "User Not Found");
+
+  const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+  if (!isPasswordValid) {
+    throw ApiResponse.error(400, 'INVALID_CREDENTIALS', 'Incorrect current password');
+  }
+
+  const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+  if (isSamePassword) {
+    throw ApiResponse.error(400, 'SAME_PASSWORD', 'New password must be different from your current password');
+  }
+
+  const newHashedPassword = await bcrypt.hash(newPassword, 12);
+  await userRepo.updatePasswordAndRevokeAllSessions(userId, newHashedPassword);
+
+  return { message: "Password updated successfully" }
+}
+
+module.exports = {
+  loginUser,
+  hashToken,
+  getAllUsers,
+  getUserById,
+  getUserSessionById,
+  refreshUserSession,
+  revokeUserSession,
+  revokeAllUserSessions,
+  changeUserPassword
+};
