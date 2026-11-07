@@ -5,8 +5,11 @@ const requestId = require('./middlewares/requestId');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
 const ApiResponse = require("./utils/Response");
-const userRouter = require("./routes/user.route");
 
+
+// ROUTERS
+const userRouter = require("./routes/user.route");
+const sessionRouter = require("./routes/session.route");
 
 const app = express();
 
@@ -31,6 +34,8 @@ app.get('/health', (req, res) => {
 // Module routes will be mounted under /api/v1 here later
 
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/sessions", sessionRouter);
+
 
 app.use(notFound);
 app.use(errorHandler);

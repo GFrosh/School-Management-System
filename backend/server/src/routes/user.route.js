@@ -14,7 +14,7 @@ router.post("/refresh", authenticateRefreshToken, asyncHandler(refreshSession));
 router.post("/login", validateBody(UserLoginSchema), asyncHandler(handleLogin));
 router.post("/logout", authenticateRefreshToken, asyncHandler(revokeSession));
 router.post("/logout/all", authenticateToken, asyncHandler(revokeAllUserSessionsHandler));
-router.post("/password", validateBody(passwordChangeSchema), authenticateToken, asyncHandler(changePasswordHandler));
+router.post("/password", authenticateToken, validateBody(passwordChangeSchema), asyncHandler(changePasswordHandler));
 // router.post("/register", asyncHandler(userController.register));
 
 module.exports = router;

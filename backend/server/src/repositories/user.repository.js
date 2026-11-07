@@ -118,12 +118,20 @@ class UserRepository {
             .leftJoin('teachers as t', 't.user_id', 'u.id')
             .leftJoin('parents as p', 'p.user_id', 'u.id')
             .leftJoin('students as s', 's.user_id', 'u.id')
+            .leftJoin('staff_profiles as sp', 'sp.user_id', 'u.id')
             .where('u.id', id)
             .select(
                 't.id as t_id',
                 'p.id as p_id',
                 's.id as s_id',
-                db.raw("coalesce(u.first_name || ' ' || u.last_name) as user_name")
+                // Names live on the profile tables now. Priority only matters when one
+                // account has several profiles (e.g. teacher + parent), where the names match.
+                db.raw(`coalesce(
+                    sp.first_name || ' ' || sp.last_name,
+                    t.first_name  || ' ' || t.last_name,
+                    p.first_name  || ' ' || p.last_name,
+                    s.first_name  || ' ' || s.last_name
+                ) as user_name`)
             )
             .first();
 
@@ -135,30 +143,6 @@ class UserRepository {
             studentId: result.s_id ? result.s_id : null,
             userName: result.user_name ? result.user_name : null
         };
-    }
-
-
-
-    /**
-     * 
-     * @param {*} userId 
-     * @param {*} newPasswordHash 
-     * @returns 
-     */
-    async updatePasswordAndRevokeAllSessions(userId, newPasswordHash) {
-        return await db.transaction(async (trx) => {
-            await trx("users")
-                .where({ id: userId })
-                .update({
-                    password_hash: newPasswordHash,
-                    updated_at: trx.fn.now()
-                });
-            
-            await trx("refresh_tokens")
-                .where({ user_id: userId })
-                .whereNull("revoked_at")
-                .update({ revoked_at: trx.fn.now() });
-        });
     }
 
 

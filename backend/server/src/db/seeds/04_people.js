@@ -2,6 +2,7 @@
  * 04 — People: accounts and profile records.
  *
  * Depends on: roles (via user_roles), nothing else.
+ * Names live on the profile tables (students, teachers, parents, staff_profiles), never on users.
  * Enforces: users.status_check, students.staff/teacher status_check,
  *           admission_number / staff_number UNIQUE, students.user_id UNIQUE
  *           (nullable), student_guardians UNIQUE (student_id, parent_id) [C12],
@@ -23,7 +24,7 @@ if (!adminEmail || !adminPassword) {
   throw new Error('Missing DB_ADMIN_EMAIL or DB_ADMIN_PASSWORD in .env');
 }
 
-const saltRounds = 12;
+const saltRounds = 10;
 
 // Admin password from config/env
 const adminHashedPassword = bcrypt.hashSync(adminPassword, saltRounds);
@@ -91,19 +92,12 @@ const roleIdByRole = async (knex) => {
   return new Map(rows.map((r) => [r.name, r.id]));
 };
 
-const ensureUser = async (knex, { email, first_name, last_name, middle_name = null, status = 'active', passwordHash = genericHashedPassword }) => {
+const ensureUser = async (knex, { email, status = 'active', passwordHash = genericHashedPassword }) => {
   if (!email) return null;
   const existing = await knex('users').where({ email }).first('id');
   if (existing) return existing.id;
   const [row] = await knex('users')
-    .insert({
-      email,
-      password_hash: passwordHash,
-      status,
-      first_name,
-      last_name,
-      middle_name,
-    })
+    .insert({ email, password_hash: passwordHash, status })
     .returning('id');
   return row.id ?? row;
 };
@@ -127,55 +121,58 @@ exports.seed = async function seed(knex) {
   // ---------------------------------------------------------------- admin
   const adminId = await ensureUser(knex, {
     email: ADMIN.email,
-    first_name: ADMIN.first_name,
-    last_name: ADMIN.last_name,
-    middle_name: ADMIN.middle_name,
     passwordHash: adminHashedPassword, // Uses config adminPassword
   });
   await grantRoles(knex, adminId, ADMIN.roles, roles);
 
+  // Admins have no domain profile, so their name lives in staff_profiles.
+  await knex('staff_profiles')
+    .insert({
+      user_id: adminId,
+      first_name: ADMIN.first_name,
+      middle_name: ADMIN.middle_name || null,
+      last_name: ADMIN.last_name,
+    })
+    .onConflict('user_id')
+    .merge(['first_name', 'middle_name', 'last_name', 'updated_at']);
+
   // -------------------------------------------------------------- teachers
   for (const t of TEACHERS) {
-    const userId = await ensureUser(knex, {
-      email: t.email,
-      first_name: t.first_name,
-      last_name: t.last_name,
-    });
+    const userId = await ensureUser(knex, { email: t.email });
     await grantRoles(knex, userId, t.roles, roles);
 
     await knex('teachers')
       .insert({
         user_id: userId,
+        first_name: t.first_name,
+        middle_name: t.middle_name || null,
+        last_name: t.last_name,
         staff_number: t.staff_number,
         employment_date: t.employment_date,
       })
       .onConflict('staff_number')
-      .merge(['user_id', 'employment_date', 'updated_at']);
+      .merge(['user_id', 'first_name', 'middle_name', 'last_name', 'employment_date', 'updated_at']);
   }
 
   // -------------------------------------------------------------- students
   for (const s of STUDENTS) {
     // Students WITHOUT an email get no account — deliberately (§3.1).
-    const userId = s.email
-      ? await ensureUser(knex, {
-          email: s.email,
-          first_name: s.first_name,
-          last_name: s.last_name,
-          middle_name: s.middle_name,
-        })
-      : null;
+    const userId = s.email ? await ensureUser(knex, { email: s.email }) : null;
     if (userId) await grantRoles(knex, userId, ['student'], roles);
 
     await knex('students')
       .insert({
         user_id: userId,
+        first_name: s.first_name,
+        middle_name: s.middle_name,
+        last_name: s.last_name,
         admission_number: s.admission_number,
         date_of_birth: s.date_of_birth,
         gender: s.gender,
         admission_date: '2026-09-07',
       })
       .onConflict('admission_number')
-      .merge(['user_id', 'date_of_birth', 'gender', 'updated_at']);
+      .merge(['user_id', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'gender', 'updated_at']);
   }
 
   // --------------------------------------------------------------- parents
@@ -188,11 +185,7 @@ exports.seed = async function seed(knex) {
       const userRow = await knex('users').where({ email: accountEmail }).first('id');
       userId = userRow?.id ?? null;
     } else {
-      userId = await ensureUser(knex, {
-        email: p.email,
-        first_name: p.first_name,
-        last_name: p.last_name,
-      });
+      userId = await ensureUser(knex, { email: p.email });
     }
 
     if (userId) await grantRoles(knex, userId, ['parent'], roles);
@@ -203,6 +196,8 @@ exports.seed = async function seed(knex) {
     if (existing) {
       await knex('parents').where({ id: existing.id }).update({
         user_id: userId,
+        first_name: p.first_name,
+        last_name: p.last_name,
         phone: p.phone,
         updated_at: knex.fn.now(),
       });
@@ -211,6 +206,8 @@ exports.seed = async function seed(knex) {
       const [row] = await knex('parents')
         .insert({
           user_id: userId,
+          first_name: p.first_name,
+          last_name: p.last_name,
           phone: p.phone,
           email: p.email,
         })

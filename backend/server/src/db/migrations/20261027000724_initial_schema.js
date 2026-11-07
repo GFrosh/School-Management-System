@@ -60,15 +60,13 @@ exports.up = async function up(knex) {
   ]);
 
   // ---------------------------------------------------------------- users
-  // Credentials and account state only. No school data lives here (§3.1).
+  // Credentials and account state only. No school data and no names live here (§3.1);
+  // a person's name belongs to their profile row.
   await knex.schema.createTable('users', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.specificType('email', 'citext').notNullable().unique();
     t.text('password_hash').notNullable();
     t.text('status').notNullable().defaultTo('active');
-    t.text('first_name').notNullable();
-    t.text('last_name').notNullable();
-    t.text('middle_name');
     // §7.1 rate limiting (5 attempts / 15 min) and §7.2 ACCOUNT_LOCKED need state.
     t.integer('failed_attempts').notNullable().defaultTo(0);
     t.timestamp('locked_until', { useTz: true });
@@ -106,6 +104,9 @@ exports.up = async function up(knex) {
   await knex.schema.createTable('students', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('user_id').unique().references('id').inTable('users').onDelete('SET NULL');
+    t.text('first_name').notNullable();
+    t.text('middle_name');
+    t.text('last_name').notNullable();
     t.text('admission_number').notNullable().unique();
     t.date('date_of_birth').notNullable();
     t.text('gender');
@@ -127,6 +128,9 @@ exports.up = async function up(knex) {
   await knex.schema.createTable('teachers', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('user_id').unique().references('id').inTable('users').onDelete('SET NULL');
+    t.text('first_name').notNullable();
+    t.text('middle_name');
+    t.text('last_name').notNullable();
     t.text('staff_number').notNullable().unique();
     t.date('employment_date');
     t.text('status').notNullable().defaultTo('active');
@@ -140,8 +144,25 @@ exports.up = async function up(knex) {
   await knex.schema.createTable('parents', (t) => {
     t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
     t.uuid('user_id').unique().references('id').inTable('users').onDelete('SET NULL');
+    t.text('first_name').notNullable();
+    t.text('middle_name');
+    t.text('last_name').notNullable();
     t.text('phone');
     t.specificType('email', 'citext');
+    stamps(knex, t);
+  });
+
+  // ---------------------------------------------------------------- staff_profiles
+  // Admins, bursars and other non-teaching staff. Unlike the tables above, the
+  // account link is NOT NULL: staff authority comes from the login, so there is
+  // no "staff member without an account" case to model. Names live here, not on users.
+  await knex.schema.createTable('staff_profiles', (t) => {
+    t.uuid('id').primary().defaultTo(knex.raw('gen_random_uuid()'));
+    t.uuid('user_id').notNullable().unique().references('id').inTable('users').onDelete('CASCADE');
+    t.text('first_name').notNullable();
+    t.text('middle_name');
+    t.text('last_name').notNullable();
+    t.text('phone');
     stamps(knex, t);
   });
 
@@ -455,6 +476,7 @@ exports.down = async function down(knex) {
   await knex.schema.dropTableIfExists('terms');
   await knex.schema.dropTableIfExists('academic_sessions');
   await knex.schema.dropTableIfExists('student_guardians');
+  await knex.schema.dropTableIfExists('staff_profiles');
   await knex.schema.dropTableIfExists('parents');
   await knex.schema.dropTableIfExists('teachers');
   await knex.schema.dropTableIfExists('students');
