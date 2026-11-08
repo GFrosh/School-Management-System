@@ -26,4 +26,31 @@ const createSession = async (req, res) => {
 }
 
 
-module.exports = { getSession, getTermsBySessionId, createSession };
+const updateSession = async (req, res) => {
+    const { id } = req.params;
+    const payload = req.body;
+    
+    if (!id || !payload) {
+        throw ApiResponse.error(400, "BAD_REQUEST", "Invalid or Missing ID/payload");
+    }
+
+    const data = await service.updateSess(id, payload);
+    return ApiResponse.success(res, data, null, 200);
+}
+
+
+const createTerm = async (req, res) => {
+    const { id } = req.params;
+    const payload = req.body;
+    
+    if (!id || !payload) {
+        throw ApiResponse.error(400, "BAD_REQUEST", "Invalid or Missing ID/payload");
+    }
+
+
+    const data = await service.createTerm(id, payload);
+    return ApiResponse.success(res, data, null, 201);
+}
+
+
+module.exports = { getSession, getTermsBySessionId, createSession, updateSession, createTerm };

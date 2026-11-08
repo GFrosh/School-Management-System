@@ -22,6 +22,21 @@ class SessionRepository {
             return newSession;
         }
     )}
+
+    async updateSession(id, data) {
+        return db.transaction(async (trx) => {
+            if (data.is_current) {
+                await trx('academic_sessions').update({ is_current: false });
+            }
+            const [updatedCurrent] = await trx("academic_sessions").where({ id }).update(data).returning("*");
+            return updatedCurrent;
+        });
+    }
+
+
+    async createNewTerm(data) {
+        return await db("terms").insert(data);
+    }
 }
 
 module.exports = SessionRepository;

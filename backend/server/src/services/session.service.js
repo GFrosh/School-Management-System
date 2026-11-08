@@ -18,6 +18,20 @@ const SessionService = {
             end_date: data.endDate,
             is_current: data.isCurrent
         });
+    },
+    updateSess: async (id, data) => {
+        return await sessionRepo.updateSession(id, {
+            is_current: data.isCurrent
+        });
+    },
+    createTerm: async (id, data) => {
+        return await sessionRepo.createNewTerm({
+            session_id: id,
+            sequence: data.sequence,
+            name: data.name,
+            start_date: data.startDate,
+            end_date: data.endDate
+        });
     }
 }
 
