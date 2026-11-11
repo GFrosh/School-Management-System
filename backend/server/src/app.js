@@ -10,6 +10,8 @@ const ApiResponse = require("./utils/Response");
 // ROUTERS
 const userRouter = require("./routes/user.route");
 const sessionRouter = require("./routes/session.route");
+const classRouter = require("./routes/class.route");
+const studentRouter = require("./routes/student.route");
 
 const app = express();
 
@@ -35,6 +37,8 @@ app.get('/health', (req, res) => {
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/sessions", sessionRouter);
+app.use("/api/v1/classes", classRouter);
+app.use("/api/v1/students", studentRouter);
 
 
 app.use(notFound);

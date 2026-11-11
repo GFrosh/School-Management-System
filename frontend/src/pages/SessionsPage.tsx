@@ -19,7 +19,7 @@ import styles from './SimplePage.module.css';
 export function SessionsPage() {
   const sessions = useSessions();
   const [selected, setSelected] = useState<string | null>(null);
-  const activeSessionId = selected ?? sessions.data?.data.find((s) => s.isCurrent)?.id ?? sessions.data?.data[0]?.id ?? '';
+  const activeSessionId = selected ?? sessions.data?.data.find((s) => s.is_current)?.id ?? sessions.data?.data[0]?.id ?? '';
   const terms = useTerms(activeSessionId || undefined);
   const createSession = useCreateSession();
   const createTerm = useCreateTerm(activeSessionId);
@@ -67,17 +67,17 @@ export function SessionsPage() {
               <li key={session.id} className={styles.row}>
                 <div>
                   <p className={styles.rowTitle}>
-                    {session.name} {session.isCurrent ? <Badge tone="published">Current</Badge> : null}
+                    {session.name} {session.is_current ? <Badge tone="published">Current</Badge> : null}
                   </p>
                   <p className={styles.muted}>
-                    {formatDate(session.startDate)} — {formatDate(session.endDate)}
+                    {formatDate(session.start_date)} — {formatDate(session.end_date)}
                   </p>
                 </div>
                 <div className={styles.rowActions}>
                   <Button size="sm" variant="ghost" onClick={() => setSelected(session.id)}>
                     {session.id === activeSessionId ? 'Showing terms' : 'Show terms'}
                   </Button>
-                  {!session.isCurrent ? (
+                  {!session.is_current ? (
                     <Button
                       size="sm"
                       variant="secondary"
@@ -128,7 +128,7 @@ export function SessionsPage() {
                     {term.sequence}. {term.name}
                   </p>
                   <p className={styles.muted}>
-                    {formatDate(term.startDate)} — {formatDate(term.endDate)}
+                    {formatDate(term.start_date)} — {formatDate(term.end_date)}
                   </p>
                 </div>
               </li>

@@ -61,7 +61,7 @@ export function AttendanceOversightPage() {
         <p>
           <strong>{assignments.data?.data.length ?? '—'}</strong> teaching assignments this term ·{' '}
           <strong>{classes.data?.data.length ?? '—'}</strong> classes ·{' '}
-          <strong>{students.data?.meta?.total ?? '—'}</strong> pupils on the register
+          <strong>{students.data?.data.length ?? '—'}</strong> pupils on the register
         </p>
       </div>
 

@@ -1,6 +1,6 @@
 /**
  * Types transcribed from the API contract (SMS Phase 1, section 7).
- * camelCase on the wire per 7.1. Nothing here is invented: each block names
+ * camelCase is used by the legacy contract models below. Nothing here is invented: each block names
  * the contract clause it comes from. Where the contract describes behaviour
  * but does not print a body, the shape is derived from the entity dictionary
  * in section 5.5 and is flagged as DERIVED.
@@ -17,6 +17,7 @@ export interface PageMeta {
 }
 
 export interface Envelope<T> {
+  success: boolean;
   data: T;
   meta?: PageMeta;
 }
@@ -98,6 +99,16 @@ export interface AcademicSession {
   isCurrent: boolean;
 }
 
+export interface SessionListItem {
+  id: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  is_current: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Term {
   id: string;
   sessionId: string;
@@ -105,6 +116,17 @@ export interface Term {
   name: string;
   startDate: string;
   endDate: string;
+}
+
+export interface TermListItem {
+  id: string;
+  session_id: string;
+  sequence: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SchoolClass {
@@ -162,6 +184,21 @@ export interface Student {
   userId: string | null;
   currentPlacement: Placement | null;
 }
+
+export type StudentListItem = {
+  id: string;
+  user_id: string | null;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  admission_number: string;
+  date_of_birth: string;
+  gender: 'male' | 'female';
+  admission_date: string;
+  status: StudentStatus;
+  created_at: string;
+  updated_at: string;
+};
 
 export interface Enrolment {
   id: string;

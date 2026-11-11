@@ -29,7 +29,7 @@ export function DashboardPage() {
   const { me } = useAuth();
   const currentSessionId = me?.scope.currentSession?.id;
 
-  const students = useStudents({ pageSize: 1 });
+  const students = useStudents({});
   const teachers = useTeachers();
   const classes = useClasses();
   const sessions = useSessions();
@@ -46,7 +46,7 @@ export function DashboardPage() {
   if (students.isError) return <ErrorState error={students.error} onRetry={() => void students.refetch()} />;
 
   const loading = students.isLoading || teachers.isLoading || classes.isLoading || allAssessments.isLoading;
-  const current = sessions.data?.data.find((s) => s.isCurrent);
+  const current = sessions.data?.data.find((s) => s.is_current);
   const readyToPublish = allAssessments.data?.data.length ?? 0;
   console.log(me);
 
@@ -63,7 +63,7 @@ export function DashboardPage() {
         <div className={styles.grid}>
           <Stat
             label="Students on record"
-            value={String(students.data?.meta?.total ?? 0)}
+            value={String(students.data?.data.length ?? 0)}
             hint="Includes closed placements, which are kept as history"
           />
           <Stat label="Staff" value={String(teachers.data?.data.length ?? 0)} hint="Active and inactive staff records" />
@@ -87,7 +87,7 @@ export function DashboardPage() {
             <div>
               <p className={styles.sessionName}>{current.name}</p>
               <p className={styles.sessionDates}>
-                {formatDate(current.startDate)} — {formatDate(current.endDate)}
+                {formatDate(current.start_date)} — {formatDate(current.end_date)}
               </p>
             </div>
             <Badge tone="published">Current</Badge>

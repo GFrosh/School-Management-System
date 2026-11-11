@@ -167,7 +167,6 @@ async function refreshUserSession(token, id) {
 
 async function revokeUserSession(sessionId) {
   const session = await userRepo.getUserSessionById(sessionId);
-  console.log(session); // Debugging line to check the session object
   if (!session) {
     throw ApiResponse.error(404, "NOT_FOUND", "Session Not Found");
   }

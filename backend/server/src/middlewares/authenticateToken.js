@@ -1,4 +1,3 @@
-const express = require('express');
 const jwt = require('jsonwebtoken');
 const { jwt: jsonwt } = require("../config/index");
 const ApiResponse = require("../utils/Response");

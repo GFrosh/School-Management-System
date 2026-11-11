@@ -310,7 +310,7 @@ export function StudentDetailPage() {
             {(sessions.data?.data ?? []).map((session) => (
               <option key={session.id} value={session.id}>
                 {session.name}
-                {session.isCurrent ? ' (current)' : ''}
+                {session.is_current ? ' (current)' : ''}
               </option>
             ))}
           </Select>

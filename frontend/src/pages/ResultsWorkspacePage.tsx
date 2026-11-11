@@ -21,7 +21,7 @@ interface Row extends Assessment {
  */
 export function ResultsWorkspacePage() {
   const sessions = useSessions();
-  const currentSessionId = sessions.data?.data.find((s) => s.isCurrent)?.id ?? '';
+  const currentSessionId = sessions.data?.data.find((s) => s.is_current)?.id ?? '';
   const terms = useTerms(currentSessionId || undefined);
   const [termId, setTermId] = useState('');
 

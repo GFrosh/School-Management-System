@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../layout/PageHeader';
-import { useClasses, useCreateStudent, useStudents } from '../api/hooks';
+import { useClasses, useCreateStudent, useSessions, useStudents } from '../api/hooks';
 import { studentCreateSchema, type StudentCreateValues } from '../api/contract';
 import { TypedApiError } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
@@ -17,10 +17,8 @@ import { ErrorState } from '../components/States';
 import { useToast } from '../components/Toast';
 import { Badge } from '../components/Badge';
 import { formatDate, humaniseStatus } from '../utils/format';
-import type { Student } from '../api/types';
+import type { StudentListItem } from '../api/types';
 import styles from './StudentsPage.module.css';
-
-const PAGE_SIZE = 25;
 
 export function StudentsPage() {
   const { hasRole } = useAuth();
@@ -30,14 +28,21 @@ export function StudentsPage() {
 
   const q = params.get('q') ?? '';
   const classId = params.get('classId') ?? '';
+  const requestedSessionId = params.get('sessionId') ?? '';
   const status = (params.get('status') as 'active' | 'inactive' | null) ?? '';
-  const page = Number(params.get('page') ?? 1);
-
   const [searchDraft, setSearchDraft] = useState(q);
   const [creating, setCreating] = useState(false);
 
   const classes = useClasses();
-  const students = useStudents({ q, classId: classId || undefined, status: status || undefined, page, pageSize: PAGE_SIZE });
+  const sessions = useSessions();
+  const currentSessionId = sessions.data?.data.find((session) => session.is_current)?.id ?? '';
+  const sessionId = requestedSessionId || currentSessionId;
+  const students = useStudents({
+    q,
+    classId: classId || undefined,
+    sessionId: sessionId || undefined,
+    status: status || undefined,
+  });
   const createStudent = useCreateStudent();
 
   const {
@@ -79,25 +84,23 @@ export function StudentsPage() {
     }
   };
 
-  const columns: Column<Student>[] = [
+  const columns: Column<StudentListItem>[] = [
     {
       key: 'name',
       header: 'Pupil',
       isRowHeader: true,
-      render: (row) => <Link to={`/students/${row.id}`}>{row.name}</Link>,
-    },
-    { key: 'admission', header: 'Admission no.', render: (row) => <span className={styles.mono}>{row.admissionNumber}</span> },
-    {
-      key: 'class',
-      header: 'Current class',
-      render: (row) => row.currentPlacement?.class.name ?? <span className={styles.muted}>Not placed</span>,
+      render: (row) => (
+        <Link to={`/students/${row.id}`}>
+          {[row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' ')}
+        </Link>
+      ),
     },
     {
-      key: 'session',
-      header: 'Session',
-      render: (row) => row.currentPlacement?.session.name ?? '—',
+      key: 'admission',
+      header: 'Admission no.',
+      render: (row) => <span className={styles.mono}>{row.admission_number}</span>,
     },
-    { key: 'dob', header: 'Date of birth', render: (row) => formatDate(row.dateOfBirth) },
+    { key: 'dob', header: 'Date of birth', render: (row) => formatDate(row.date_of_birth) },
     {
       key: 'status',
       header: 'Status',
@@ -109,18 +112,17 @@ export function StudentsPage() {
       key: 'account',
       header: 'Account',
       render: (row) =>
-        row.userId ? <Badge tone="info">Linked</Badge> : <span className={styles.muted}>No login</span>,
+        row.user_id ? <Badge tone="info">Linked</Badge> : <span className={styles.muted}>No login</span>,
     },
   ];
 
-  const total = students.data?.meta?.total ?? 0;
-  const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const total = students.data?.data.length ?? 0;
 
   return (
     <>
       <PageHeader
         title="Students"
-        description="Search by name or admission number. Placements are history rows, so a pupil who has moved class still shows every session they were enrolled in."
+        description="Search by name or admission number."
         actions={
           isAdmin ? (
             <Button variant="primary" onClick={() => setCreating(true)}>
@@ -155,6 +157,23 @@ export function StudentsPage() {
               {klass.name}
             </option>
           ))}
+        </Select>
+        <Select
+          label="Session"
+          value={sessionId}
+          onChange={(event) => updateParam('sessionId', event.target.value)}
+          disabled={sessions.isLoading || sessions.isError}
+        >
+          {sessions.isError ? (
+            <option value="">Sessions unavailable</option>
+          ) : (
+            (sessions.data?.data ?? []).map((session) => (
+              <option key={session.id} value={session.id}>
+                {session.name}
+                {session.is_current ? ' (current)' : ''}
+              </option>
+            ))
+          )}
         </Select>
         <Select label="Status" value={status} onChange={(event) => updateParam('status', event.target.value)}>
           <option value="">Any status</option>
@@ -195,19 +214,9 @@ export function StudentsPage() {
       ) : (
         <>
           <Table caption="Students matching the current filters" columns={columns} rows={students.data?.data ?? []} rowKey={(row) => row.id} emptyMessage="No pupils match those filters." />
-          <nav className={styles.pagination} aria-label="Student list pages">
-            <p className={styles.pageInfo}>
-              Page {page} of {lastPage} · {total} {total === 1 ? 'pupil' : 'pupils'}
-            </p>
-            <div className={styles.pageButtons}>
-              <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => updateParam('page', String(page - 1))}>
-                Previous
-              </Button>
-              <Button size="sm" variant="secondary" disabled={page >= lastPage} onClick={() => updateParam('page', String(page + 1))}>
-                Next
-              </Button>
-            </div>
-          </nav>
+          <p className={styles.pageInfo}>
+            {total} {total === 1 ? 'pupil' : 'pupils'}
+          </p>
         </>
       )}
 

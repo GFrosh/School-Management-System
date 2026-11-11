@@ -6,6 +6,7 @@
 import { apiRequest } from './client';
 import type {
   AcademicSession,
+  SessionListItem,
   Assessment,
   Assignment,
   CorrectionResult,
@@ -18,11 +19,13 @@ import type {
   SchoolClass,
   ScoreRow,
   Student,
+  StudentListItem,
   StudentAttendance,
   StudentFilters,
   Subject,
   Teacher,
   Term,
+  TermListItem,
   Envelope,
   LoginResult,
   MeResponse,
@@ -51,13 +54,13 @@ export const changePassword = (body: { currentPassword: string; newPassword: str
 
 /* 7.4 academic structure */
 export const fetchSessions = (current?: boolean) =>
-  apiRequest<AcademicSession[]>('/sessions', { query: current ? { current: true } : undefined });
+  apiRequest<SessionListItem[]>('/sessions', { query: current ? { current: true } : undefined });
 export const createSession = (body: SessionCreateValues) =>
   apiRequest<AcademicSession>('/sessions', { method: 'POST', body });
 export const patchSession = (id: string, body: { name?: string; isCurrent?: boolean }) =>
   apiRequest<AcademicSession>(`/sessions/${id}`, { method: 'PATCH', body });
 export const fetchTerms = (sessionId: string) =>
-  apiRequest<Term[]>(`/sessions/${sessionId}/terms`);
+  apiRequest<TermListItem[]>(`/sessions/${sessionId}/terms`);
 export const createTerm = (sessionId: string, body: TermCreateValues) =>
   apiRequest<Term>(`/sessions/${sessionId}/terms`, {
     method: 'POST',
@@ -94,7 +97,7 @@ export const fetchRoster = (assignmentId: string) =>
 
 /* 7.5 students, staff, guardians */
 export const fetchStudents = (filters: StudentFilters) =>
-  apiRequest<Student[]>('/students', {
+  apiRequest<StudentListItem[]>('/students', {
     query: {
       q: filters.q,
       classId: filters.classId,

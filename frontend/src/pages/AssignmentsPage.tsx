@@ -38,7 +38,7 @@ export function AssignmentsPage() {
   const [pendingDelete, setPendingDelete] = useState<Assignment | null>(null);
 
   const sessions = useSessions();
-  const currentSessionId = sessions.data?.data.find((s) => s.isCurrent)?.id ?? '';
+  const currentSessionId = sessions.data?.data.find((s) => s.is_current)?.id ?? '';
   const terms = useTerms(currentSessionId || undefined);
   const classes = useClasses();
   const subjects = useSubjects();
