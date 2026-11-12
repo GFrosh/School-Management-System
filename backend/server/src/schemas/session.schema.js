@@ -15,7 +15,10 @@ const CreateSessionSchema = z.object({
 
 const UpdateSessionSchema = z.object({
     body: z.object({
-        isCurrent: z.boolean().optional().default(false)
+        name: z.string().min(1).optional(),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        isCurrent: z.boolean().optional()
     }),
     params: z.object({
         id: z.uuid("Invalid user ID format")

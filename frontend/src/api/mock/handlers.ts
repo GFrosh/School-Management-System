@@ -249,9 +249,24 @@ export async function mockRequest(
 
   /* -- classes / subjects -- */
   if (method === 'GET' && pathname === '/classes') {
-    if (isAdmin || user.roles.includes('student') || user.roles.includes('parent')) return ok(state.classes, 200);
+    const toClassListItem = (classRecord: (typeof state.classes)[number]) => ({
+      id: classRecord.id,
+      name: classRecord.name,
+      level:
+        typeof classRecord.level === 'number'
+          ? classRecord.level
+          : Number.parseInt(classRecord.level.match(/\d+/)?.[0] ?? '', 10) || 0,
+      class_teacher_id: classRecord.classTeacher?.id ?? null,
+      class_teacher_name: classRecord.classTeacher?.name ?? null,
+      headcount: classRecord.headcount ?? 0,
+      created_at: new Date(0).toISOString(),
+      updated_at: new Date(0).toISOString(),
+    });
+    if (isAdmin || user.roles.includes('student') || user.roles.includes('parent')) {
+      return ok(state.classes.map(toClassListItem), 200);
+    }
     const mine = new Set(state.assignments.filter((a) => a.teacher.id === user.profiles.teacherId).map((a) => a.class.id));
-    return ok(state.classes.filter((c) => mine.has(c.id)), 200);
+    return ok(state.classes.filter((c) => mine.has(c.id)).map(toClassListItem), 200);
   }
 
   if (method === 'POST' && pathname === '/classes') {
@@ -283,7 +298,7 @@ export async function mockRequest(
     if (state.subjects.some((s) => s.code === code)) {
       return fail(409, 'CONFLICT', 'That subject code is already in use.', [{ field: 'code', code: 'DUPLICATE' }]);
     }
-    const created = { id: uid('5c09'), code, name: String(payload.name), isCore: Boolean(payload.isCore) };
+    const created = { id: uid('5c09'), code, name: String(payload.name), is_core: Boolean(payload.isCore) };
     state.subjects.push(created);
     return ok(created, 201);
   }

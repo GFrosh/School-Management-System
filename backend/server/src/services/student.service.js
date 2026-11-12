@@ -61,6 +61,17 @@ const StudentService = {
         // 2. Strict Role Verification
         const isTeacherOnly = user.roles.includes("teacher") && !user.roles.includes("admin");
 
+        if (isTeacherOnly && !teacherId) {
+            return {
+                data: null,
+                meta: {
+                    page: 1,
+                    pageSize: 1,
+                    total: 0
+                }
+            };
+        }
+
         // 3. Delegate database heavy lifting to the repository
         const student = await studentRepo.getStudentById(studentId, teacherId, isTeacherOnly);
         return {
@@ -68,7 +79,7 @@ const StudentService = {
             meta: {
                 page: 1,
                 pageSize: 1,
-                total: 1
+                total: student ? 1 : 0
             }
         };
     },
@@ -86,14 +97,25 @@ const StudentService = {
         // 2. Strict Role Verification
         const isTeacherOnly = user.roles.includes("teacher") && !user.roles.includes("admin");
 
+        if (isTeacherOnly && !teacherId) {
+            return {
+                data: [],
+                meta: {
+                    page: 1,
+                    pageSize: 25,
+                    total: 0
+                }
+            };
+        }
+
         // 3. Delegate database heavy lifting to the repository
         const enrolments = await studentRepo.getEnrolments(studentId, teacherId, isTeacherOnly);
         return {
             data: enrolments,
             meta: {
                 page: 1,
-                pageSize: 1,
-                total: 1
+                pageSize: enrolments.length,
+                total: enrolments.length
             }
         };
     }

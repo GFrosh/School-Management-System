@@ -15,6 +15,17 @@ class SessionRepository {
 
     async createNew(data) {
         return db.transaction(async (trx) => {
+            const overlap = await trx('academic_sessions')
+                .where('start_date', '<', data.end_date)
+                .andWhere('end_date', '>', data.start_date)
+                .first('id');
+            if (overlap) {
+                const error = new Error('Academic session dates overlap an existing session');
+                error.status = 422;
+                error.code = 'VALIDATION_FAILED';
+                error.isOperational = true;
+                throw error;
+            }
             if (data.is_current) {
                 await trx('academic_sessions').update({ is_current: false });
             }
@@ -25,6 +36,22 @@ class SessionRepository {
 
     async updateSession(id, data) {
         return db.transaction(async (trx) => {
+            const existing = await trx('academic_sessions').where({ id }).first();
+            if (!existing) return undefined;
+            const startDate = data.start_date || existing.start_date;
+            const endDate = data.end_date || existing.end_date;
+            const overlap = await trx('academic_sessions')
+                .whereNot({ id })
+                .where('start_date', '<', endDate)
+                .andWhere('end_date', '>', startDate)
+                .first('id');
+            if (overlap) {
+                const error = new Error('Academic session dates overlap an existing session');
+                error.status = 422;
+                error.code = 'VALIDATION_FAILED';
+                error.isOperational = true;
+                throw error;
+            }
             if (data.is_current) {
                 await trx('academic_sessions').update({ is_current: false });
             }

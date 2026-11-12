@@ -48,7 +48,6 @@ export function DashboardPage() {
   const loading = students.isLoading || teachers.isLoading || classes.isLoading || allAssessments.isLoading;
   const current = sessions.data?.data.find((s) => s.is_current);
   const readyToPublish = allAssessments.data?.data.length ?? 0;
-  console.log(me);
 
   return (
     <>

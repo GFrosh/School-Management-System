@@ -35,6 +35,9 @@ const updateSession = async (req, res) => {
     }
 
     const data = await service.updateSess(id, payload);
+    if (!data) {
+        throw ApiResponse.error(404, "NOT_FOUND", "Session not found");
+    }
     return ApiResponse.success(res, data, null, 200);
 }
 

@@ -21,6 +21,9 @@ const SessionService = {
     },
     updateSess: async (id, data) => {
         return await sessionRepo.updateSession(id, {
+            name: data.name,
+            start_date: data.startDate,
+            end_date: data.endDate,
             is_current: data.isCurrent
         });
     },

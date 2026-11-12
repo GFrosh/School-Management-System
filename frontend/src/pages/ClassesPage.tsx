@@ -12,7 +12,7 @@ import { Table, type Column } from '../components/Table';
 import { Skeleton } from '../components/Skeleton';
 import { ErrorState } from '../components/States';
 import { useToast } from '../components/Toast';
-import type { SchoolClass } from '../api/types';
+import type { ClassListItem } from '../api/types';
 import styles from './SimplePage.module.css';
 
 export function ClassesPage() {
@@ -32,15 +32,19 @@ export function ClassesPage() {
     defaultValues: { name: '', level: '' },
   });
 
-  const columns: Column<SchoolClass>[] = [
+  const columns: Column<ClassListItem>[] = [
     { key: 'name', header: 'Class', isRowHeader: true, render: (row) => row.name },
     { key: 'level', header: 'Level', render: (row) => row.level },
-    { key: 'head', header: 'Class teacher', render: (row) => row.classTeacher?.name ?? <span className={styles.muted}>Unassigned</span> },
+    {
+      key: 'head',
+      header: 'Class teacher',
+      render: (row) => row.class_teacher_name ?? <span className={styles.muted}>Unassigned</span>,
+    },
     {
       key: 'count',
       header: 'Headcount',
       align: 'end',
-      render: (row) => (row.headcount === undefined ? '—' : String(row.headcount)),
+      render: (row) => String(row.headcount),
     },
   ];
 

@@ -39,7 +39,7 @@ export function SubjectsPage() {
     {
       key: 'core',
       header: 'Type',
-      render: (row) => (row.isCore ? <Badge tone="info">Core</Badge> : <Badge tone="neutral">Elective</Badge>),
+      render: (row) => (row.is_core ? <Badge tone="info">Core</Badge> : <Badge tone="neutral">Elective</Badge>),
     },
   ];
 

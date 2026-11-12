@@ -17,6 +17,7 @@ import type {
   ReportCard,
   RosterRow,
   SchoolClass,
+  ClassListItem,
   ScoreRow,
   Student,
   StudentListItem,
@@ -78,7 +79,7 @@ export const promote = (sessionId: string, fromSessionId: string, decisions: Pro
     { method: 'POST', body: { fromSessionId, decisions } },
   );
 
-export const fetchClasses = () => apiRequest<SchoolClass[]>('/classes');
+export const fetchClasses = () => apiRequest<ClassListItem[]>('/classes');
 export const createClass = (body: ClassCreateValues) =>
   apiRequest<SchoolClass>('/classes', { method: 'POST', body });
 export const patchClass = (id: string, body: { name?: string; level?: string }) =>

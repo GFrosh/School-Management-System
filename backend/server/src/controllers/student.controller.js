@@ -15,6 +15,9 @@ const getStudentById = async (req, res) => {
     const user = req.user;
 
     const { data, meta } = await service.getById(studentId, user);
+    if (!data) {
+        throw ApiResponse.error(404, "NOT_FOUND", "Student not found");
+    }
     return ApiResponse.success(res, data, meta, 200);
 };
 

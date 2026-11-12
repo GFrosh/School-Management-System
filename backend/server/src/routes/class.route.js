@@ -3,16 +3,15 @@ const router = Router();
 
 
 const validate = require("../middlewares/validateSchema");
-const { CreateClassSchema } = require("../schemas/class.schema");
+const { CreateClassSchema, UpdateClassSchema } = require("../schemas/class.schema");
 const { authenticateToken } = require("../middlewares/authenticateToken");
+const requireRoles = require("../middlewares/requireRoles");
 const asyncHandler = require("../middlewares/asyncHandler");
-const { getClasses, createClass } = require("../controllers/class.controller");
+const { getClasses, createClass, updateClass } = require("../controllers/class.controller");
 
 
 
-router.get("/", authenticateToken, asyncHandler(getClasses));
-router.post("/", authenticateToken, validate(CreateClassSchema), asyncHandler(createClass))
-router.patch("/:id", authenticateToken, async (req, res) => {
-    console.log(req.body);
-});
+router.get("/", authenticateToken, requireRoles("*"), asyncHandler(getClasses));
+router.post("/", authenticateToken, requireRoles("admin"), validate(CreateClassSchema), asyncHandler(createClass))
+router.patch("/:id", authenticateToken, requireRoles("admin"), validate(UpdateClassSchema), asyncHandler(updateClass));
 module.exports = router;

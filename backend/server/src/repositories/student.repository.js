@@ -11,8 +11,10 @@ class StudentRepository {
     return query
       .join("enrolments as e_scope", "e_scope.student_id", "s.id")
       .join("teaching_assignments as ta", "ta.class_id", "e_scope.class_id")
+      .join("terms as term_scope", "term_scope.id", "ta.term_id")
       .where("ta.teacher_id", teacherId)
-      .andWhere("e_scope.status", "active");
+      .andWhere("e_scope.status", "active")
+      .andWhereRaw("e_scope.session_id = term_scope.session_id");
   }
 
   // 2. Isolated filtering logic
@@ -89,7 +91,9 @@ class StudentRepository {
     if (isTeacherOnly) {
       query = query
         .join("teaching_assignments as ta", "ta.class_id", "e.class_id")
-        .where("ta.teacher_id", teacherId);
+        .join("terms as term_scope", "term_scope.id", "ta.term_id")
+        .where("ta.teacher_id", teacherId)
+        .andWhereRaw("e.session_id = term_scope.session_id");
     }
 
     return await query;

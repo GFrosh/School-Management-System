@@ -15,7 +15,7 @@ const NAV: NavItem[] = [
   { to: '/', label: 'Dashboard', roles: ['admin'] },
   { to: '/students', label: 'Students', roles: ['admin', 'teacher'] },
   { to: '/staff', label: 'Staff', roles: ['admin'] },
-  { to: '/classes', label: 'Classes', roles: ['admin'] },
+  { to: '/classes', label: 'Classes', roles: ['admin', 'teacher', 'student', 'parent'] },
   { to: '/subjects', label: 'Subjects', roles: ['admin'] },
   { to: '/sessions', label: 'Sessions & terms', roles: ['admin'] },
   { to: '/assignments', label: 'Assignments', roles: ['admin', 'teacher'] },

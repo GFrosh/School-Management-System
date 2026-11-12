@@ -138,11 +138,24 @@ export interface SchoolClass {
   headcount?: number;
 }
 
+export interface ClassListItem {
+  id: string;
+  name: string;
+  level: number;
+  class_teacher_id: string | null;
+  class_teacher_name: string | null;
+  headcount: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Subject {
   id: string;
   code: string;
   name: string;
-  isCore: boolean;
+  is_core: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Assignment {

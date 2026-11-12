@@ -193,11 +193,11 @@ const classes: SchoolClass[] = [
 ];
 
 const subjects: Subject[] = [
-  { id: subjectIds.MTH, code: 'MTH', name: 'Mathematics', isCore: true },
-  { id: subjectIds.ENG, code: 'ENG', name: 'English Language', isCore: true },
-  { id: subjectIds.PHY, code: 'PHY', name: 'Physics', isCore: false },
-  { id: subjectIds.CHM, code: 'CHM', name: 'Chemistry', isCore: false },
-  { id: subjectIds.BIO, code: 'BIO', name: 'Biology', isCore: false },
+  { id: subjectIds.MTH, code: 'MTH', name: 'Mathematics', is_core: true },
+  { id: subjectIds.ENG, code: 'ENG', name: 'English Language', is_core: true },
+  { id: subjectIds.PHY, code: 'PHY', name: 'Physics', is_core: false },
+  { id: subjectIds.CHM, code: 'CHM', name: 'Chemistry', is_core: false },
+  { id: subjectIds.BIO, code: 'BIO', name: 'Biology', is_core: false },
 ];
 
 const teachers: Teacher[] = [

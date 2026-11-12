@@ -50,12 +50,15 @@ export function App() {
 
           <Route element={<RequireAuth roles={['admin']} />}>
             <Route path="staff" element={<StaffPage />} />
-            <Route path="classes" element={<ClassesPage />} />
             <Route path="subjects" element={<SubjectsPage />} />
             <Route path="sessions" element={<SessionsPage />} />
             <Route path="attendance" element={<AttendanceOversightPage />} />
             <Route path="results" element={<ResultsWorkspacePage />} />
             <Route path="results/:assessmentId" element={<AssessmentPage />} />
+          </Route>
+
+          <Route element={<RequireAuth roles={['admin', 'teacher', 'student', 'parent']} />}>
+            <Route path="classes" element={<ClassesPage />} />
           </Route>
 
           <Route element={<RequireAuth roles={['student', 'parent']} />}>
