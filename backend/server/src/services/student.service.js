@@ -47,6 +47,55 @@ const StudentService = {
                 total
             }
         };
+    },
+
+    getById: async (studentId, user) => {
+        let teacherId = null;
+
+        // 1. Resolve Teacher Profile ID dynamically via User ID
+        if (user.roles.includes("teacher")) {
+            const teacherRecord = await teacherRepo.getByUserId(user.sub);
+            teacherId = teacherRecord?.id || null;
+        }
+
+        // 2. Strict Role Verification
+        const isTeacherOnly = user.roles.includes("teacher") && !user.roles.includes("admin");
+
+        // 3. Delegate database heavy lifting to the repository
+        const student = await studentRepo.getStudentById(studentId, teacherId, isTeacherOnly);
+        return {
+            data: student,
+            meta: {
+                page: 1,
+                pageSize: 1,
+                total: 1
+            }
+        };
+    },
+
+
+    getEnrolments: async (studentId, user) => {
+        let teacherId = null;
+
+        // 1. Resolve Teacher Profile ID dynamically via User ID
+        if (user.roles.includes("teacher")) {
+            const teacherRecord = await teacherRepo.getByUserId(user.sub);
+            teacherId = teacherRecord?.id || null;
+        }
+
+        // 2. Strict Role Verification
+        const isTeacherOnly = user.roles.includes("teacher") && !user.roles.includes("admin");
+
+        // 3. Delegate database heavy lifting to the repository
+        const enrolments = await studentRepo.getEnrolments(studentId, teacherId, isTeacherOnly);
+        return {
+            data: enrolments,
+            meta: {
+                page: 1,
+                pageSize: 1,
+                total: 1
+            }
+        };
     }
 }
 

@@ -211,6 +211,18 @@ export interface Enrolment {
   reason?: string | null;
 }
 
+export interface StudentEnrolmentListItem {
+  id: string;
+  student_id: string;
+  class_id: string;
+  session_id: string;
+  status: EnrolmentStatus;
+  enrolled_on: string;
+  ended_on: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Teacher {
   id: string;
   staffNumber: string;

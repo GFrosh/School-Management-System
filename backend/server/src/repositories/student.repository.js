@@ -68,6 +68,32 @@ class StudentRepository {
 
     return { data, total };
   }
+
+
+  async getStudentById(studentId, teacherId, isTeacherOnly) {
+    let query = this.#getFreshBaseQuery().where("s.id", studentId);
+
+    if (isTeacherOnly) {
+      query = this.scopeByTeacher(query, teacherId);
+    }
+
+    return await query.first();
+  }
+
+
+  async getEnrolments(studentId, teacherId, isTeacherOnly) {
+    let query = db("enrolments as e")
+      .select("e.*")
+      .where("e.student_id", studentId);
+
+    if (isTeacherOnly) {
+      query = query
+        .join("teaching_assignments as ta", "ta.class_id", "e.class_id")
+        .where("ta.teacher_id", teacherId);
+    }
+
+    return await query;
+  }
 }
 
 module.exports = StudentRepository;

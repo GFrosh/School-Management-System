@@ -20,6 +20,7 @@ import type {
   ScoreRow,
   Student,
   StudentListItem,
+  StudentEnrolmentListItem,
   StudentAttendance,
   StudentFilters,
   Subject,
@@ -107,7 +108,7 @@ export const fetchStudents = (filters: StudentFilters) =>
       pageSize: filters.pageSize ?? 25,
     },
   });
-export const fetchStudent = (id: string) => apiRequest<Student>(`/students/${id}`);
+export const fetchStudent = (id: string) => apiRequest<StudentListItem>(`/students/${id}`);
 export const createStudent = (body: StudentCreateValues) =>
   apiRequest<Student>('/students', { method: 'POST', body });
 export const patchStudent = (id: string, body: StudentUpdateValues) =>
@@ -116,7 +117,7 @@ export const patchStudent = (id: string, body: StudentUpdateValues) =>
     body: { name: body.name, dateOfBirth: body.dateOfBirth, status: body.status },
   });
 export const fetchEnrolments = (studentId: string) =>
-  apiRequest<Enrolment[]>(`/students/${studentId}/enrolments`);
+  apiRequest<StudentEnrolmentListItem[]>(`/students/${studentId}/enrolments`);
 export const createEnrolment = (studentId: string, body: EnrolmentCreateValues) =>
   apiRequest<Enrolment>(`/students/${studentId}/enrolments`, { method: 'POST', body });
 export const closeEnrolment = (enrolmentId: string, body: EnrolmentCloseValues) =>

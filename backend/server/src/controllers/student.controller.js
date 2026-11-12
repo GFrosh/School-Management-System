@@ -9,4 +9,22 @@ const getStudents = async (req, res) => {
     return ApiResponse.success(res, data, meta, 200);
 }
 
-module.exports = { getStudents };
+
+const getStudentById = async (req, res) => {
+    const studentId = req.params.id;
+    const user = req.user;
+
+    const { data, meta } = await service.getById(studentId, user);
+    return ApiResponse.success(res, data, meta, 200);
+};
+
+
+const getStudentEnrolments = async (req, res) => {
+    const studentId = req.params.id;
+    const user = req.user;
+
+    const { data, meta } = await service.getEnrolments(studentId, user);
+    return ApiResponse.success(res, data, meta, 200);
+}
+
+module.exports = { getStudents, getStudentById, getStudentEnrolments };

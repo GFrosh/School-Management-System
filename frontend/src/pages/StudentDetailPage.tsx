@@ -33,7 +33,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorState, InlineNotice } from '../components/States';
 import { useToast } from '../components/Toast';
 import { formatDate, humaniseStatus, todayISO } from '../utils/format';
-import type { Enrolment } from '../api/types';
+import type { StudentEnrolmentListItem } from '../api/types';
 import styles from './StudentDetailPage.module.css';
 
 export function StudentDetailPage() {
@@ -56,15 +56,17 @@ export function StudentDetailPage() {
 
   const [enrolling, setEnrolling] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [closing, setClosing] = useState<Enrolment | null>(null);
+  const [closing, setClosing] = useState<StudentEnrolmentListItem | null>(null);
   const [unlinking, setUnlinking] = useState<{ parentId: string; name: string } | null>(null);
 
   const editForm = useForm<StudentUpdateValues>({
     resolver: zodResolver(studentUpdateSchema),
     values: student.data
       ? {
-          name: student.data.data.name,
-          dateOfBirth: student.data.data.dateOfBirth,
+          name: [student.data.data.first_name, student.data.data.middle_name, student.data.data.last_name]
+            .filter(Boolean)
+            .join(' '),
+          dateOfBirth: student.data.data.date_of_birth,
           status: student.data.data.status,
         }
       : undefined,
@@ -89,12 +91,22 @@ export function StudentDetailPage() {
 
   const record = student.data?.data;
   if (!record) return <ErrorState error={new Error('The student record was empty.')} onRetry={() => void student.refetch()} />;
+  const studentName = [record.first_name, record.middle_name, record.last_name].filter(Boolean).join(' ');
 
-  const enrolmentColumns: Column<Enrolment>[] = [
-    { key: 'session', header: 'Session', isRowHeader: true, render: (row) => row.session.name },
-    { key: 'class', header: 'Class', render: (row) => row.class.name },
-    { key: 'enrolled', header: 'Enrolled', render: (row) => formatDate(row.enrolledOn) },
-    { key: 'ended', header: 'Closed', render: (row) => (row.endedOn ? formatDate(row.endedOn) : '—') },
+  const enrolmentColumns: Column<StudentEnrolmentListItem>[] = [
+    {
+      key: 'session',
+      header: 'Session',
+      isRowHeader: true,
+      render: (row) => sessions.data?.data.find((session) => session.id === row.session_id)?.name ?? row.session_id,
+    },
+    {
+      key: 'class',
+      header: 'Class',
+      render: (row) => classes.data?.data.find((klass) => klass.id === row.class_id)?.name ?? row.class_id,
+    },
+    { key: 'enrolled', header: 'Enrolled', render: (row) => formatDate(row.enrolled_on) },
+    { key: 'ended', header: 'Closed', render: (row) => (row.ended_on ? formatDate(row.ended_on) : '—') },
     {
       key: 'status',
       header: 'Status',
@@ -118,8 +130,8 @@ export function StudentDetailPage() {
   return (
     <>
       <PageHeader
-        title={record.name}
-        description={`Admission number ${record.admissionNumber} — this number is the school's identity for the pupil and cannot be changed.`}
+        title={[record.first_name, record.middle_name, record.last_name].filter(Boolean).join(' ')}
+        description={`Admission number ${record.admission_number} — this number is the school's identity for the pupil and cannot be changed.`}
         actions={isAdmin ? <Button variant="secondary" onClick={() => setEditing(true)}>Edit demographics</Button> : undefined}
       />
 
@@ -129,7 +141,7 @@ export function StudentDetailPage() {
           <dl className={styles.definition}>
             <div>
               <dt>Date of birth</dt>
-              <dd>{formatDate(record.dateOfBirth)}</dd>
+              <dd>{formatDate(record.date_of_birth)}</dd>
             </div>
             <div>
               <dt>Status</dt>
@@ -139,15 +151,7 @@ export function StudentDetailPage() {
             </div>
             <div>
               <dt>Login</dt>
-              <dd>{record.userId ? 'Account linked' : 'No account yet — the record exists without one'}</dd>
-            </div>
-            <div>
-              <dt>Current placement</dt>
-              <dd>
-                {record.currentPlacement
-                  ? `${record.currentPlacement.class.name} · ${record.currentPlacement.session.name}`
-                  : 'Not currently placed'}
-              </dd>
+              <dd>{record.user_id ? 'Account linked' : 'No account yet — the record exists without one'}</dd>
             </div>
           </dl>
         </div>
@@ -244,7 +248,7 @@ export function StudentDetailPage() {
 
       <Modal
         open={editing}
-        title={`Edit ${record.name}`}
+        title={`Edit ${studentName}`}
         description="Demographics and status only. The admission number is immutable, and academic history is never edited here — a wrong placement is closed and a new one created."
         confirmLabel="Save changes"
         busy={patchStudent.isPending}
@@ -276,7 +280,7 @@ export function StudentDetailPage() {
 
       <Modal
         open={enrolling}
-        title={`Enrol ${record.name}`}
+        title={`Enrol ${studentName}`}
         description="One active placement per session. If the pupil already has a live placement for the chosen session the server refuses the request rather than replacing history."
         confirmLabel="Enrol"
         busy={createEnrolment.isPending}
@@ -329,7 +333,11 @@ export function StudentDetailPage() {
         title="Close this placement"
         description={
           closing
-            ? `${record.name} will leave ${closing.class.name} in ${closing.session.name}. The row is kept as history and results already recorded under it stay attached to that class — nothing is deleted.`
+            ? `${studentName} will leave ${
+                classes.data?.data.find((klass) => klass.id === closing.class_id)?.name ?? closing.class_id
+              } in ${
+                sessions.data?.data.find((session) => session.id === closing.session_id)?.name ?? closing.session_id
+              }. The row is kept as history and results already recorded under it stay attached to that class — nothing is deleted.`
             : ''
         }
         confirmLabel="Close placement"
@@ -357,7 +365,7 @@ export function StudentDetailPage() {
         title="Unlink this guardian"
         description={
           unlinking
-            ? `${unlinking.name} will immediately lose access to ${record.name}'s attendance and published results. Their own account is untouched, and the link can be restored later.`
+            ? `${unlinking.name} will immediately lose access to ${studentName}'s attendance and published results. Their own account is untouched, and the link can be restored later.`
             : ''
         }
         confirmLabel="Unlink guardian"
