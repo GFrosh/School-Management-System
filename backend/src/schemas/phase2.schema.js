@@ -17,16 +17,16 @@ const AssignmentSchema = z.object({ body: z.object({
   .refine(v => v.subject_id || v.subjectId).refine(v => v.term_id || v.termId) });
 
 const StudentSchema = z.object({ body: z.object({
-  first_name: z.string().trim().min(1).optional(), firstName: z.string().trim().min(1).optional(), middle_name: optionalText,
-  last_name: z.string().trim().min(1).optional(), lastName: z.string().trim().min(1).optional(), admission_number: z.string().trim().min(1).optional(), admissionNumber: z.string().trim().min(1).optional(),
+  first_name: z.string().trim().min(1).optional(), firstName: z.string().trim().min(1).optional(), middle_name: optionalText, middleName: optionalText,
+  last_name: z.string().trim().min(1).optional(), lastName: z.string().trim().min(1).optional(),
   date_of_birth: z.coerce.date().optional(), dateOfBirth: z.coerce.date().optional(), gender: z.enum(["male", "female", "other"]).optional(),
-  admission_date: z.coerce.date().optional(), status: z.enum(["active", "withdrawn", "graduated"]).optional(),
+  admission_date: z.coerce.date().optional(), status: z.enum(["active", "inactive", "withdrawn", "graduated"]).optional(),
   user_id: uuid.optional(),
   name: z.string().trim().min(1).optional(),
-}).refine(v => (v.first_name || v.firstName || v.name) && (v.last_name || v.lastName || v.name))
-  .refine(v => v.admission_number || v.admissionNumber).refine(v => v.date_of_birth || v.dateOfBirth) });
+}).refine(v => (v.first_name || v.firstName) && (v.last_name || v.lastName))
+  .refine(v => v.date_of_birth || v.dateOfBirth) });
 const UpdateStudentSchema = z.object({ body: z.object({
-  first_name: z.string().trim().min(1).optional(), middle_name: optionalText,
+  first_name: z.string().trim().min(1).optional(), firstName: z.string().trim().min(1).optional(), middle_name: optionalText, middleName: optionalText,
   last_name: z.string().trim().min(1).optional(), admission_number: z.string().trim().min(1).optional(),
   date_of_birth: z.coerce.date().optional(), gender: z.enum(["male", "female", "other"]).optional(),
   admission_date: z.coerce.date().optional(), status: z.enum(["active", "withdrawn", "graduated"]).optional(),

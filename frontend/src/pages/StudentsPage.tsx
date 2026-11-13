@@ -36,7 +36,7 @@ export function StudentsPage() {
   const classes = useClasses();
   const sessions = useSessions();
   const currentSessionId = sessions.data?.data.find((session) => session.is_current)?.id ?? '';
-  const sessionId = requestedSessionId || currentSessionId;
+  const sessionId = isAdmin ? requestedSessionId : requestedSessionId || currentSessionId;
   const students = useStudents({
     q,
     classId: classId || undefined,
@@ -53,7 +53,7 @@ export function StudentsPage() {
     formState: { errors, isSubmitting },
   } = useForm<StudentCreateValues>({
     resolver: zodResolver(studentCreateSchema),
-    defaultValues: { name: '', admissionNumber: '', dateOfBirth: '', status: 'active' },
+    defaultValues: { firstName: '', middleName: '', lastName: '', dateOfBirth: '', status: 'active' },
   });
 
   const updateParam = (key: string, value: string) => {
@@ -67,17 +67,12 @@ export function StudentsPage() {
   const onSubmit = async (values: StudentCreateValues) => {
     try {
       await createStudent.mutateAsync(values);
-      toast.push(`${values.name} was added to the register.`, 'success');
+      toast.push(`${values.firstName} ${values.lastName} was added to the register.`, 'success');
       setCreating(false);
       reset();
     } catch (error) {
       if (error instanceof TypedApiError) {
-        const field = error.details[0]?.field;
-        if (field === 'admissionNumber') {
-          setError('admissionNumber', { message: error.details[0]?.message ?? 'That number is already in use.' });
-          return;
-        }
-        setError('name', { message: error.message });
+        setError('root', { message: error.message });
         return;
       }
       toast.push('The record could not be created. Nothing was saved.', 'error');
@@ -167,12 +162,15 @@ export function StudentsPage() {
           {sessions.isError ? (
             <option value="">Sessions unavailable</option>
           ) : (
-            (sessions.data?.data ?? []).map((session) => (
-              <option key={session.id} value={session.id}>
-                {session.name}
-                {session.is_current ? ' (current)' : ''}
-              </option>
-            ))
+            <>
+              {isAdmin ? <option value="">All sessions</option> : null}
+              {(sessions.data?.data ?? []).map((session) => (
+                <option key={session.id} value={session.id}>
+                  {session.name}
+                  {session.is_current ? ' (current)' : ''}
+                </option>
+              ))}
+            </>
           )}
         </Select>
         <Select label="Status" value={status} onChange={(event) => updateParam('status', event.target.value)}>
@@ -233,14 +231,11 @@ export function StudentsPage() {
         }}
       >
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Input label="Full name" required error={errors.name?.message} {...register('name')} />
-          <Input
-            label="Admission number"
-            required
-            hint="Immutable once saved, e.g. SMS/2026/0142"
-            error={errors.admissionNumber?.message}
-            {...register('admissionNumber')}
-          />
+          <Input label="First name" required error={errors.firstName?.message} {...register('firstName')} />
+          <Input label="Middle name" hint="Optional" error={errors.middleName?.message} {...register('middleName')} />
+          <Input label="Last name" required error={errors.lastName?.message} {...register('lastName')} />
+          {errors.root?.message ? <p className={styles.error}>{errors.root.message}</p> : null}
+          <p className={styles.muted}>Admission number is generated automatically from the entry year.</p>
           <Input label="Date of birth" type="date" required error={errors.dateOfBirth?.message} {...register('dateOfBirth')} />
           <Select label="Status" error={errors.status?.message} {...register('status')}>
             <option value="active">Active</option>

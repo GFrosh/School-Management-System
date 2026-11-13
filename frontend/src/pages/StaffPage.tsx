@@ -18,7 +18,9 @@ import styles from './SimplePage.module.css';
 
 /** DERIVED from the teachers entity (contract 5.5): staff_number (UK), name, status. */
 const teacherSchema = z.object({
-  name: z.string().min(2, 'Enter the staff member’s name'),
+  firstName: z.string().trim().min(1, 'First name is required'),
+  middleName: z.string().trim().optional(),
+  lastName: z.string().trim().min(1, 'Last name is required'),
   staffNumber: z.string().min(3, 'Staff number is required'),
 });
 type TeacherValues = z.infer<typeof teacherSchema>;
@@ -35,7 +37,7 @@ export function StaffPage() {
     reset,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<TeacherValues>({ resolver: zodResolver(teacherSchema), defaultValues: { name: '', staffNumber: '' } });
+  } = useForm<TeacherValues>({ resolver: zodResolver(teacherSchema), defaultValues: { firstName: '', middleName: '', lastName: '', staffNumber: '' } });
 
   const columns: Column<Teacher>[] = [
     { key: 'name', header: 'Staff member', isRowHeader: true, render: (row) => row.name },
@@ -53,7 +55,7 @@ export function StaffPage() {
   const onSubmit = async (values: TeacherValues) => {
     try {
       await createTeacher.mutateAsync(values);
-      toast.push(`${values.name} was added to the staff register.`, 'success');
+      toast.push(`${values.firstName} ${values.lastName} was added to the staff register.`, 'success');
       setCreating(false);
       reset();
     } catch (error) {
@@ -103,7 +105,9 @@ export function StaffPage() {
         }}
       >
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Input label="Full name" required error={errors.name?.message} {...register('name')} />
+          <Input label="First name" required error={errors.firstName?.message} {...register('firstName')} />
+          <Input label="Middle name" hint="Optional" error={errors.middleName?.message} {...register('middleName')} />
+          <Input label="Last name" required error={errors.lastName?.message} {...register('lastName')} />
           <Input label="Staff number" required hint="e.g. STF/2026/031" error={errors.staffNumber?.message} {...register('staffNumber')} />
         </form>
       </Modal>

@@ -12,6 +12,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "migrate": "knex migrate:latest",
+    "migrate:latest": "knex migrate:latest",
     "migrate:down": "knex migrate:rollback",
     "seed": "knex seed:run",
     "migrate:status": "knex migrate:status"

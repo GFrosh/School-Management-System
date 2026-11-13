@@ -63,14 +63,14 @@ export function StudentDetailPage() {
     resolver: zodResolver(studentUpdateSchema),
     values: student.data
       ? {
-          name: [student.data.data.first_name, student.data.data.middle_name, student.data.data.last_name]
-            .filter(Boolean)
-            .join(' '),
+          firstName: student.data.data.first_name,
+          middleName: student.data.data.middle_name ?? '',
+          lastName: student.data.data.last_name,
           dateOfBirth: student.data.data.date_of_birth,
           status: student.data.data.status,
         }
       : undefined,
-    defaultValues: { name: '', dateOfBirth: '', status: 'active' },
+    defaultValues: { firstName: '', middleName: '', lastName: '', dateOfBirth: '', status: 'active' },
   });
 
   const enrolForm = useForm<EnrolmentCreateValues>({
@@ -198,7 +198,7 @@ export function StudentDetailPage() {
               variant="secondary"
               onClick={() => {
                 linkGuardian.mutate(
-                  { parentId: '9d020000-0000-4000-8000-000000000003', relationship: 'Guardian', isPrimary: false },
+                  { parentId: '9d020000-0000-4000-8000-000000000003', relationship: 'guardian', isPrimary: false },
                   {
                     onSuccess: () => toast.push('Guardian linked. They can now see published results.', 'success'),
                     onError: (error) =>
@@ -264,7 +264,9 @@ export function StudentDetailPage() {
         onClose={() => setEditing(false)}
       >
         <form className={styles.form}>
-          <Input label="Full name" error={editForm.formState.errors.name?.message} {...editForm.register('name')} />
+          <Input label="First name" required error={editForm.formState.errors.firstName?.message} {...editForm.register('firstName')} />
+          <Input label="Middle name" hint="Optional" error={editForm.formState.errors.middleName?.message} {...editForm.register('middleName')} />
+          <Input label="Last name" required error={editForm.formState.errors.lastName?.message} {...editForm.register('lastName')} />
           <Input
             label="Date of birth"
             type="date"

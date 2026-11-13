@@ -182,7 +182,7 @@ export const useTeachers = (enabled = true) =>
 export const useCreateTeacher = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { name: string; staffNumber: string }) => api.createTeacher(body),
+    mutationFn: (body: { firstName: string; middleName?: string; lastName: string; staffNumber: string }) => api.createTeacher(body),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.teachers }),
   });
 };

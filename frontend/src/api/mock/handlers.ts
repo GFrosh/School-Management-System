@@ -201,7 +201,7 @@ export async function mockRequest(
       id: uid('77e2'),
       sessionId,
       sequence,
-      name: String(payload.name),
+      name: [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(' '),
       startDate: String(payload.startDate),
       endDate: String(payload.endDate),
     };
@@ -401,14 +401,16 @@ export async function mockRequest(
 
   if (method === 'POST' && pathname === '/students') {
     if (!isAdmin) return fail(403, 'FORBIDDEN', 'Only an administrator may create a student record.');
-    const admissionNumber = String(payload.admissionNumber ?? '');
-    if (state.students.some((s) => s.admissionNumber === admissionNumber)) {
-      return fail(409, 'CONFLICT', 'That admission number is already in use.', [{ field: 'admissionNumber', code: 'DUPLICATE' }]);
-    }
+    const year = new Date(String(payload.admissionDate ?? new Date().toISOString())).getUTCFullYear();
+    const sequence = state.students
+      .map((s) => new RegExp(`^SMS/${year}/(\\d+)$`).exec(s.admissionNumber)?.[1])
+      .filter(Boolean)
+      .reduce((max, value) => Math.max(max, Number(value)), 0) + 1;
+    const admissionNumber = `SMS/${year}/${String(sequence).padStart(4, '0')}`;
     const created = {
       id: uid('s02'),
       admissionNumber,
-      name: String(payload.name),
+      name: [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(' '),
       dateOfBirth: String(payload.dateOfBirth),
       status: (payload.status as 'active' | 'inactive') ?? 'active',
       userId: null,

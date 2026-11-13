@@ -115,7 +115,7 @@ export const createStudent = (body: StudentCreateValues) =>
 export const patchStudent = (id: string, body: StudentUpdateValues) =>
   apiRequest<Student>(`/students/${id}`, {
     method: 'PATCH',
-    body: { name: body.name, dateOfBirth: body.dateOfBirth, status: body.status },
+    body,
   });
 export const fetchEnrolments = (studentId: string) =>
   apiRequest<StudentEnrolmentListItem[]>(`/students/${studentId}/enrolments`);
@@ -123,8 +123,31 @@ export const createEnrolment = (studentId: string, body: EnrolmentCreateValues) 
   apiRequest<Enrolment>(`/students/${studentId}/enrolments`, { method: 'POST', body });
 export const closeEnrolment = (enrolmentId: string, body: EnrolmentCloseValues) =>
   apiRequest<Enrolment>(`/enrolments/${enrolmentId}`, { method: 'PATCH', body });
-export const fetchTeachers = () => apiRequest<Teacher[]>('/teachers');
-export const createTeacher = (body: { name: string; staffNumber: string }) =>
+type TeacherApiRow = {
+  id: string;
+  staff_number: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  status: 'active' | 'on_leave' | 'inactive';
+  user_id: string | null;
+  email?: string | null;
+};
+
+const mapTeacher = (row: TeacherApiRow): Teacher => ({
+  id: row.id,
+  staffNumber: row.staff_number,
+  name: [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' '),
+  status: row.status === 'active' ? 'active' : 'inactive',
+  userId: row.user_id,
+  email: row.email ?? null,
+});
+
+export const fetchTeachers = async () => {
+  const response = await apiRequest<TeacherApiRow[]>('/teachers');
+  return { ...response, data: response.data.map(mapTeacher) };
+};
+export const createTeacher = (body: { firstName: string; middleName?: string; lastName: string; staffNumber: string }) =>
   apiRequest<Teacher>('/teachers', { method: 'POST', body });
 export const fetchGuardians = (studentId: string) =>
   apiRequest<Guardian[]>(`/students/${studentId}/guardians`);

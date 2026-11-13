@@ -6,7 +6,25 @@ class Phase2Repository {
   listTeachers() { return db("teachers").orderBy("last_name").orderBy("first_name"); }
   async createTeacher(data) { const [row] = await db("teachers").insert(data).returning("*"); return row; }
   async updateTeacher(id, data) { const [row] = await db("teachers").where({ id }).update({ ...data, updated_at: db.fn.now() }).returning("*"); return row; }
-  async createStudent(data) { const [row] = await db("students").insert(data).returning("*"); return row; }
+  async createStudent(data) {
+    return db.transaction(async (trx) => {
+      const admissionDate = data.admission_date ? new Date(data.admission_date) : new Date();
+      const year = admissionDate.getUTCFullYear();
+      await trx.raw("SELECT pg_advisory_xact_lock(hashtext(?))", [`student-admission-${year}`]);
+      const latest = await trx("students")
+        .whereLike("admission_number", `SMS/${year}/%`)
+        .max({ sequence: trx.raw("CAST(SUBSTRING(admission_number FROM 10) AS INTEGER)") })
+        .first();
+      const sequence = Number(latest?.sequence || 0) + 1;
+      const admission_number = `SMS/${year}/${String(sequence).padStart(4, "0")}`;
+      const [row] = await trx("students").insert({
+        ...data,
+        admission_number,
+        admission_date: data.admission_date || admissionDate,
+      }).returning("*");
+      return row;
+    });
+  }
   async updateStudent(id, data) { const [row] = await db("students").where({ id }).update({ ...data, updated_at: db.fn.now() }).returning("*"); return row; }
   async createEnrolment(data) { const [row] = await db("enrolments").insert(data).returning("*"); return row; }
   async closeEnrolment(id, data) { const [row] = await db("enrolments").where({ id }).update({ ...data, updated_at: db.fn.now() }).returning("*"); return row; }

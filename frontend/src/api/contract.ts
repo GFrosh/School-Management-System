@@ -28,18 +28,15 @@ const isoDate = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use a date in YYYY-MM-DD form');
 
 export const studentCreateSchema = z.object({
-  name: z.string().min(2, 'Enter the full name').max(120),
-  admissionNumber: z
-    .string()
-    .min(1, 'Admission number is required')
-    .regex(/^SMS\/\d{4}\/\d{3,4}$/, 'Expected the school format, e.g. SMS/2026/0142'),
+  firstName: z.string().trim().min(1, 'First name is required').max(60),
+  middleName: z.string().trim().max(60).optional(),
+  lastName: z.string().trim().min(1, 'Last name is required').max(60),
   dateOfBirth: isoDate,
   status: z.enum(['active', 'inactive']),
 });
 export type StudentCreateValues = z.infer<typeof studentCreateSchema>;
 
 export const studentUpdateSchema = studentCreateSchema
-  .omit({ admissionNumber: true })
   .extend({ admissionNumber: z.string().optional() });
 export type StudentUpdateValues = z.infer<typeof studentUpdateSchema>;
 
@@ -59,7 +56,7 @@ export type EnrolmentCloseValues = z.infer<typeof enrolmentCloseSchema>;
 
 export const guardianLinkSchema = z.object({
   parentId: z.string().min(1, 'Select a guardian'),
-  relationship: z.string().min(2, 'Relationship is required').max(40),
+  relationship: z.enum(['father', 'mother', 'guardian', 'other']),
   isPrimary: z.boolean(),
 });
 export type GuardianLinkValues = z.infer<typeof guardianLinkSchema>;
