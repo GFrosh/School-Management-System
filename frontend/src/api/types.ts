@@ -64,6 +64,27 @@ export interface User {
   };
 }
 
+export type ProfileType = 'parent' | 'teacher' | 'student' | 'staff';
+
+export interface AccountProfile {
+  profileType: ProfileType;
+  profileId: string;
+  userId: string | null;
+  name: string;
+  email: string | null;
+  canCreate: boolean;
+}
+
+export interface CreatedUserAccount {
+  id: string;
+  email: string;
+  status: string;
+  profileType: ProfileType;
+  profileId: string;
+  name: string;
+  role: Role;
+}
+
 export interface Me extends User {
   scope: {
     /** teacher only: count of active assignments */

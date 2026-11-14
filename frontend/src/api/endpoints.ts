@@ -33,6 +33,8 @@ import type {
   LoginResult,
   MeResponse,
   User,
+  AccountProfile,
+  CreatedUserAccount,
 } from './types';
 import type {
   AssignmentCreateValues,
@@ -54,6 +56,13 @@ export const fetchMe = () => apiRequest<MeResponse>('/users/me');
 export const logout = () => apiRequest<{ loggedOut: boolean }>('/users/logout', { method: 'POST' });
 export const changePassword = (body: { currentPassword: string; newPassword: string }) =>
   apiRequest<{ changed: boolean }>('/users/password', { method: 'POST', body });
+export const fetchAccountProfiles = () => apiRequest<AccountProfile[]>('/users/profiles');
+export const createUserFromProfile = (body: {
+  profileType: AccountProfile['profileType'];
+  profileId: string;
+  email: string;
+  password: string;
+}) => apiRequest<CreatedUserAccount>('/users/from-profile', { method: 'POST', body });
 
 /* 7.4 academic structure */
 export const fetchSessions = (current?: boolean) =>

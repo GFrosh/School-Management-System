@@ -30,6 +30,7 @@ export const qk = {
   student: (id: string) => ['student', id] as const,
   enrolments: (id: string) => ['student', id, 'enrolments'] as const,
   teachers: ['teachers'] as const,
+  accountProfiles: ['account-profiles'] as const,
   guardians: (id: string) => ['student', id, 'guardians'] as const,
   register: (assignmentId: string, date: string, period: number) =>
     ['register', assignmentId, date, period] as const,
@@ -184,6 +185,17 @@ export const useCreateTeacher = () => {
   return useMutation({
     mutationFn: (body: { firstName: string; middleName?: string; lastName: string }) => api.createTeacher(body),
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.teachers }),
+  });
+};
+
+export const useAccountProfiles = () =>
+  useQuery({ queryKey: qk.accountProfiles, queryFn: api.fetchAccountProfiles });
+
+export const useCreateUserFromProfile = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.createUserFromProfile,
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.accountProfiles }),
   });
 };
 

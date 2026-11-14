@@ -1,18 +1,20 @@
 const { Router } = require('express');
 const router = Router();
 
-const { UserLoginSchema, passwordChangeSchema } = require('../schemas/user.schema');
+const { UserLoginSchema, passwordChangeSchema, CreateUserFromProfileSchema } = require('../schemas/user.schema');
 const validateBody = require('../middlewares/validateSchema');
 const validate = validateBody;
 const asyncHandler = require('../middlewares/asyncHandler');
 const { authenticateToken, authenticateRefreshToken } = require("../middlewares/authenticateToken");
-const { handleLogin, fetchAll, getSession, refreshSession, revokeSession, revokeAllUserSessionsHandler, changePasswordHandler } = require('../controllers/user.controller');
+const { handleLogin, fetchAll, getSession, refreshSession, revokeSession, revokeAllUserSessionsHandler, changePasswordHandler, fetchProfilesForAccounts, createFromProfile } = require('../controllers/user.controller');
 const phase2 = require("../controllers/phase2.controller");
 const { UserStatusSchema } = require("../schemas/phase2.schema");
 const requireRoles = require("../middlewares/requireRoles");
 
 
 router.get("/", authenticateToken, requireRoles("admin"), asyncHandler(fetchAll));
+router.get("/profiles", authenticateToken, requireRoles("admin"), asyncHandler(fetchProfilesForAccounts));
+router.post("/from-profile", authenticateToken, requireRoles("admin"), validate(CreateUserFromProfileSchema), asyncHandler(createFromProfile));
 router.get("/me", authenticateToken, asyncHandler(getSession));
 router.post("/refresh", authenticateRefreshToken, asyncHandler(refreshSession));
 router.post("/login", validateBody(UserLoginSchema), asyncHandler(handleLogin));

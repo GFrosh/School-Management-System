@@ -17,4 +17,13 @@ const passwordChangeSchema = z.object({
   })
 })
 
-module.exports = { UserLoginSchema, passwordChangeSchema };
+const CreateUserFromProfileSchema = z.object({
+  body: z.object({
+    profileType: z.enum(['parent', 'teacher', 'student', 'staff']),
+    profileId: z.string().uuid(),
+    email: z.string().email(),
+    password: z.string().min(8).regex(/[A-Z]/, 'Password must contain at least one uppercase letter'),
+  }),
+});
+
+module.exports = { UserLoginSchema, passwordChangeSchema, CreateUserFromProfileSchema };

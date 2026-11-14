@@ -94,6 +94,22 @@ async function getAllUsers() {
   return await userRepo.getAllUsers();
 }
 
+async function listProfilesForAccounts() {
+  return userRepo.listProfilesForAccounts();
+}
+
+async function createUserFromProfile(data) {
+  const passwordHash = await bcrypt.hash(data.password, 12);
+  try {
+    return await userRepo.createUserFromProfile({ ...data, passwordHash });
+  } catch (error) {
+    if (error.code === 'PROFILE_ALREADY_LINKED') {
+      throw ApiResponse.error(409, 'CONFLICT', error.message);
+    }
+    throw error;
+  }
+}
+
 
 async function getUserById(id) {
   const user = await userRepo.getUserById(id);
@@ -214,4 +230,6 @@ module.exports = {
   revokeUserSession,
   revokeAllUserSessions,
   changeUserPassword
+  ,listProfilesForAccounts
+  ,createUserFromProfile
 };

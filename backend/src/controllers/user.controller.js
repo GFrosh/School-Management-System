@@ -1,6 +1,6 @@
 const config = require("../config/index");
 const ApiResponse = require('../utils/Response');
-const { loginUser, getAllUsers, getUserById, getUserSessionById, refreshUserSession, revokeUserSession, revokeAllUserSessions } = require("../services/user.service");
+const { loginUser, getAllUsers, getUserById, getUserSessionById, refreshUserSession, revokeUserSession, revokeAllUserSessions, listProfilesForAccounts, createUserFromProfile } = require("../services/user.service");
 
 const handleLogin = async (req, res) => {
 	const { email, password } = req.body; 
@@ -30,6 +30,16 @@ const fetchAll = async (req, res) => {
 	const allUsers = await getAllUsers();
 	return ApiResponse.success(res, allUsers, null, 200);
 }
+
+const fetchProfilesForAccounts = async (req, res) => {
+  return ApiResponse.success(res, await listProfilesForAccounts(), null, 200);
+};
+
+const createFromProfile = async (req, res) => {
+  const result = await createUserFromProfile(req.body);
+  if (!result) throw ApiResponse.error(404, 'NOT_FOUND', 'Profile not found');
+  return ApiResponse.success(res, result, null, 201);
+};
 
 
 const getSession = async (req, res) => {
@@ -103,4 +113,6 @@ module.exports = {
 	revokeSession,
 	revokeAllUserSessionsHandler,
 	changePasswordHandler
+	,fetchProfilesForAccounts
+	,createFromProfile
 };

@@ -9,6 +9,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { StudentsPage } from './pages/StudentsPage';
 import { StudentDetailPage } from './pages/StudentDetailPage';
 import { StaffPage } from './pages/StaffPage';
+import { UsersPage } from './pages/UsersPage';
 import { ClassesPage } from './pages/ClassesPage';
 import { SubjectsPage } from './pages/SubjectsPage';
 import { SessionsPage } from './pages/SessionsPage';
@@ -50,6 +51,7 @@ export function App() {
 
           <Route element={<RequireAuth roles={['admin']} />}>
             <Route path="staff" element={<StaffPage />} />
+            <Route path="users" element={<UsersPage />} />
             <Route path="subjects" element={<SubjectsPage />} />
             <Route path="sessions" element={<SessionsPage />} />
             <Route path="attendance" element={<AttendanceOversightPage />} />

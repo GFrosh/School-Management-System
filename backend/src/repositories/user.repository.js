@@ -154,6 +154,42 @@ class UserRepository {
     async getAllUsers() {
         return await db('users').select('*');
     }
+
+    async listProfilesForAccounts() {
+        const [parents, teachers, students, staff] = await Promise.all([
+            db('parents').select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'email'),
+            db('teachers').select('id', 'user_id', 'first_name', 'middle_name', 'last_name'),
+            db('students').select('id', 'user_id', 'first_name', 'middle_name', 'last_name'),
+            db('staff_profiles').select('id', 'user_id', 'first_name', 'middle_name', 'last_name'),
+        ]);
+        const map = (profileType, rows) => rows.map((row) => ({
+            profileType,
+            profileId: row.id,
+            userId: row.user_id,
+            name: [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' '),
+            email: row.email || null,
+            canCreate: !row.user_id,
+        }));
+        return [...map('parent', parents), ...map('teacher', teachers), ...map('student', students), ...map('staff', staff)];
+    }
+
+    async createUserFromProfile({ profileType, profileId, email, passwordHash }) {
+        return db.transaction(async (trx) => {
+            const tables = { parent: 'parents', teacher: 'teachers', student: 'students', staff: 'staff_profiles' };
+            const roles = { parent: 'parent', teacher: 'teacher', student: 'student', staff: 'admin' };
+            const table = tables[profileType];
+            const profile = await trx(table).where({ id: profileId }).first();
+            if (!profile) return null;
+            if (profile.user_id) {
+                throw Object.assign(new Error('This profile already has a user account'), { code: 'PROFILE_ALREADY_LINKED' });
+            }
+            const [user] = await trx('users').insert({ email, password_hash: passwordHash }).returning(['id', 'email', 'status']);
+            const [role] = await trx('roles').where({ name: roles[profileType] }).select('id');
+            await trx('user_roles').insert({ user_id: user.id, role_id: role.id });
+            await trx(table).where({ id: profileId }).update({ user_id: user.id, updated_at: trx.fn.now() });
+            return { ...user, profileType, profileId, name: [profile.first_name, profile.middle_name, profile.last_name].filter(Boolean).join(' '), role: roles[profileType] };
+        });
+    }
 }
 
 

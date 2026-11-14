@@ -5,7 +5,7 @@
  * require no component changes.
  */
 import type { Envelope, ErrorCode, ErrorDetail } from '../types';
-import { state } from './data';
+import { state, type MockState } from './data';
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
@@ -158,6 +158,51 @@ export async function mockRequest(
   }
 
   const isAdmin = user.roles.includes('admin');
+
+  if (method === 'GET' && pathname === '/users/profiles') {
+    if (!isAdmin) return fail(403, 'FORBIDDEN', 'Only an administrator may list account profiles.');
+    const profiles = [
+      ...state.parents.map((profile) => ({ profileType: 'parent' as const, profileId: profile.id, userId: profile.userId, name: profile.name, email: profile.email || null, canCreate: !profile.userId })),
+      ...state.teachers.map((profile) => ({ profileType: 'teacher' as const, profileId: profile.id, userId: profile.userId, name: profile.name, email: profile.email || null, canCreate: !profile.userId })),
+      ...state.students.map((profile) => ({ profileType: 'student' as const, profileId: profile.id, userId: profile.userId, name: profile.name, email: null, canCreate: !profile.userId })),
+    ];
+    return ok(profiles);
+  }
+
+  if (method === 'POST' && pathname === '/users/from-profile') {
+    if (!isAdmin) return fail(403, 'FORBIDDEN', 'Only an administrator may create user accounts.');
+    const profileType = String(payload.profileType ?? '');
+    const profileId = String(payload.profileId ?? '');
+    const email = String(payload.email ?? '').trim().toLowerCase();
+    const password = String(payload.password ?? '');
+    if (!['parent', 'teacher', 'student'].includes(profileType) || !profileId || !email || !password) {
+      return fail(422, 'VALIDATION_FAILED', 'Profile type, profile, email, and password are required.');
+    }
+    if (state.users.some((candidate) => candidate.email.toLowerCase() === email)) return fail(409, 'CONFLICT', 'That email is already in use.');
+    const profile = profileType === 'parent'
+      ? state.parents.find((candidate) => candidate.id === profileId)
+      : profileType === 'teacher'
+        ? state.teachers.find((candidate) => candidate.id === profileId)
+        : state.students.find((candidate) => candidate.id === profileId);
+    if (!profile) return fail(404, 'NOT_FOUND', 'Profile not found.');
+    if (profile.userId) return fail(409, 'CONFLICT', 'This profile already has a user account.');
+    const id = uid('usr');
+    const role = profileType as 'parent' | 'teacher' | 'student';
+    const account: MockState['users'][number] = {
+      id,
+      email,
+      displayName: profile.name,
+      roles: [role],
+      profiles: { teacherId: null, parentId: null, studentId: null },
+      password,
+    };
+    if (role === 'parent') account.profiles.parentId = profileId;
+    if (role === 'teacher') account.profiles.teacherId = profileId;
+    if (role === 'student') account.profiles.studentId = profileId;
+    state.users.push(account);
+    profile.userId = id;
+    return ok({ id, email, status: 'active', profileType, profileId, name: profile.name, role }, 201);
+  }
 
   /* -- sessions and terms -- */
   if (method === 'GET' && pathname === '/sessions') {
