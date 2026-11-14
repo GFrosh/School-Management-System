@@ -35,6 +35,8 @@ module.exports = {
     return teacherId ? query.where("ta.teacher_id", teacherId) : query;
   },
   listTeachers: () => repo.listTeachers(),
+  listStaff: () => repo.listStaff(),
+  createStaff: (data) => repo.createStaff(data),
   createTeacher: (data) => repo.createTeacher(data),
   updateTeacher: (id, data) => repo.updateTeacher(id, data).then(r => requireRow(r, "Teacher")),
   createStudent: (data) => repo.createStudent(data),

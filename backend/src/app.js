@@ -15,7 +15,7 @@ const userRouter = require("./routes/user.route");
 const sessionRouter = require("./routes/session.route");
 const classRouter = require("./routes/class.route");
 const studentRouter = require("./routes/student.route");
-const { subject, assignment, teacher, guardian, enrolment } = require("./routes/phase2.route");
+const { subject, assignment, teacher, staff, guardian, enrolment } = require("./routes/phase2.route");
 // Phase 2 academic routes are isolated from the resource API worker's router.
 const academicRouter = require("./routes/academic.route");
 
@@ -50,6 +50,7 @@ app.use("/api/v1/students", studentRouter);
 app.use("/api/v1/subjects", subject);
 app.use("/api/v1/teaching-assignments", assignment);
 app.use("/api/v1/teachers", teacher);
+app.use("/api/v1/staff", staff);
 app.use("/api/v1/students", guardian);
 app.use("/api/v1/enrolments", enrolment);
 

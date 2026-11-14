@@ -25,6 +25,10 @@ teacher.get("/", ...admin, asyncHandler(c.listTeachers));
 teacher.post("/", ...admin, validate(schemas.TeacherSchema), asyncHandler(c.createTeacher));
 teacher.patch("/:id", ...admin, validate(schemas.UpdateTeacherSchema), asyncHandler(c.updateTeacher));
 
+const staff = Router();
+staff.get("/", ...admin, asyncHandler(c.listStaff));
+staff.post("/", ...admin, validate(schemas.StaffSchema), asyncHandler(c.createStaff));
+
 const guardian = Router();
 guardian.get("/:id/guardians", ...admin, asyncHandler(c.listGuardians));
 guardian.post("/:id/guardians", ...admin, validate(schemas.GuardianSchema), asyncHandler(c.linkGuardian));
@@ -33,4 +37,4 @@ guardian.delete("/:id/guardians/:parentId", ...admin, asyncHandler(c.unlinkGuard
 const enrolment = Router();
 enrolment.patch("/:id", ...admin, validate(schemas.CloseEnrolmentSchema), asyncHandler(c.closeEnrolment));
 
-module.exports = { subject, assignment, teacher, guardian, enrolment };
+module.exports = { subject, assignment, teacher, staff, guardian, enrolment };

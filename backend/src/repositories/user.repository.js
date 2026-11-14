@@ -159,9 +159,16 @@ class UserRepository {
     async listProfilesForAccounts() {
         const [parents, teachers, students, staff] = await Promise.all([
             db('parents').select('id', 'user_id', 'first_name', 'middle_name', 'last_name', 'email'),
-            db('teachers as t').join('staff as s', 's.id', 't.staff_id').select('t.id', 's.user_id', 's.first_name', 's.middle_name', 's.last_name'),
-            db('students').select('id', 'user_id', 'first_name', 'middle_name', 'last_name'),
-            db('staff').select('id', 'user_id', 'first_name', 'middle_name', 'last_name'),
+            db('teachers as t')
+                .join('staff as s', 's.id', 't.staff_id')
+                .leftJoin('users as u', 'u.id', 's.user_id')
+                .select('t.id', 's.user_id', 's.first_name', 's.middle_name', 's.last_name', 'u.email'),
+            db('students as s')
+                .leftJoin('users as u', 'u.id', 's.user_id')
+                .select('s.id', 's.user_id', 's.first_name', 's.middle_name', 's.last_name', 'u.email'),
+            db('staff as s')
+                .leftJoin('users as u', 'u.id', 's.user_id')
+                .select('s.id', 's.user_id', 's.first_name', 's.middle_name', 's.last_name', 'u.email'),
         ]);
         const map = (profileType, rows) => rows.map((row) => ({
             profileType,

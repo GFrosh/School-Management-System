@@ -30,6 +30,7 @@ export const qk = {
   student: (id: string) => ['student', id] as const,
   enrolments: (id: string) => ['student', id, 'enrolments'] as const,
   teachers: ['teachers'] as const,
+  staff: ['staff'] as const,
   accountProfiles: ['account-profiles'] as const,
   guardians: (id: string) => ['student', id, 'guardians'] as const,
   register: (assignmentId: string, date: string, period: number) =>
@@ -179,6 +180,17 @@ export const useCloseEnrolment = (studentId: string) => {
 
 export const useTeachers = (enabled = true) =>
   useQuery({ queryKey: qk.teachers, queryFn: api.fetchTeachers, enabled });
+
+export const useStaff = (enabled = true) =>
+  useQuery({ queryKey: qk.staff, queryFn: api.fetchStaff, enabled });
+
+export const useCreateStaff = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.createStaff,
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.staff }),
+  });
+};
 
 export const useCreateTeacher = () => {
   const qc = useQueryClient();

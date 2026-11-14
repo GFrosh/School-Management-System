@@ -31,7 +31,16 @@ export function UsersPage() {
   const createUser = useCreateUserFromProfile();
   const toast = useToast();
   const [creating, setCreating] = useState(false);
-  const availableProfiles = useMemo(() => (profiles.data?.data ?? []).filter((profile) => profile.canCreate), [profiles.data]);
+  const [search, setSearch] = useState('');
+  const allProfiles = profiles.data?.data ?? [];
+  const filteredProfiles = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return allProfiles;
+    return allProfiles.filter((profile) => [profile.name, profile.email, profile.profileType]
+      .filter(Boolean)
+      .some((value) => value!.toLowerCase().includes(query)));
+  }, [allProfiles, search]);
+  const availableProfiles = useMemo(() => allProfiles.filter((profile) => profile.canCreate), [allProfiles]);
   const {
     register,
     handleSubmit,
@@ -76,11 +85,20 @@ export function UsersPage() {
     <>
       <PageHeader
         title="User accounts"
-        description="Create login credentials for an existing school profile. Employment roles and login permissions are managed separately."
+        description="Manage login accounts linked to school profiles. Profiles marked No login are records awaiting administrator-created credentials."
         actions={<Button variant="primary" onClick={() => setCreating(true)} disabled={availableProfiles.length === 0}>Create user account</Button>}
       />
       {profiles.isLoading ? <Skeleton rows={8} /> : profiles.isError ? <ErrorState error={profiles.error} onRetry={() => void profiles.refetch()} /> : (
-        <Table caption="Existing profiles and login links" columns={columns} rows={profiles.data?.data ?? []} rowKey={(row) => `${row.profileType}-${row.profileId}`} emptyMessage="No profiles found." />
+        <>
+          <Input
+            label="Search profiles"
+            type="search"
+            placeholder="Search by name, email, or profile type"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+          <Table caption="Existing profiles and login links" columns={columns} rows={filteredProfiles} rowKey={(row) => `${row.profileType}-${row.profileId}`} emptyMessage={search ? 'No matching profiles found.' : 'No profiles found.'} />
+        </>
       )}
       <Modal
         open={creating}

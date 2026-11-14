@@ -27,6 +27,7 @@ import type {
   StudentFilters,
   Subject,
   Teacher,
+  Staff,
   Term,
   TermListItem,
   Envelope,
@@ -210,6 +211,27 @@ export const fetchTeachers = async () => {
   const response = await apiRequest<TeacherApiRow[]>('/teachers');
   return { ...response, data: response.data.map(mapTeacher) };
 };
+type StaffApiRow = {
+  id: string; staff_number: string; first_name: string; middle_name: string | null; last_name: string;
+  staff_type: Staff['staffType']; status: 'active' | 'on_leave' | 'inactive'; user_id: string | null;
+  email?: string | null; teacher_id: string | null;
+};
+const mapStaff = (row: StaffApiRow): Staff => ({
+  id: row.id,
+  staffNumber: row.staff_number,
+  name: [row.first_name, row.middle_name, row.last_name].filter(Boolean).join(' '),
+  staffType: row.staff_type,
+  status: row.status === 'active' ? 'active' : 'inactive',
+  userId: row.user_id,
+  email: row.email ?? null,
+  teacherId: row.teacher_id,
+});
+export const fetchStaff = async () => {
+  const response = await apiRequest<StaffApiRow[]>('/staff');
+  return { ...response, data: response.data.map(mapStaff) };
+};
+export const createStaff = (body: { firstName: string; middleName?: string; lastName: string; staffType: Staff['staffType'] }) =>
+  apiRequest<Staff>('/staff', { method: 'POST', body: { ...body, staff_type: body.staffType } });
 export const createTeacher = (body: { firstName: string; middleName?: string; lastName: string }) =>
   apiRequest<Teacher>('/teachers', { method: 'POST', body });
 export const fetchGuardians = (studentId: string) =>

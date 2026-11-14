@@ -50,7 +50,7 @@ const TEACHERS = [
   { staff_number: 'TCH/006', first_name: 'Amina', last_name: 'Bello', email: 'a.bello@school.edu.ng', roles: ['teacher'], employment_date: '2023-01-09' },
 ];
 
-// JSS1A roster: 8 with accounts, 8 without (bulk-registered from paper forms).
+// The original development roster used by the workflow fixtures.
 const STUDENTS = [
   { admission_number: 'SMS/2026/0101', first_name: 'Chidi', middle_name: 'Emeka', last_name: 'Nwosu', gender: 'male', date_of_birth: '2014-03-11', email: 'chidi.nwosu@student.school.edu.ng' },
   { admission_number: 'SMS/2026/0102', first_name: 'Halima', middle_name: null, last_name: 'Yusuf', gender: 'female', date_of_birth: '2014-06-02', email: 'halima.yusuf@student.school.edu.ng' },
@@ -117,6 +117,39 @@ const grantRoles = async (knex, userId, roleNames, roles) => {
  */
 exports.seed = async function seed(knex) {
   const roles = await roleIdByRole(knex);
+
+  // Remove records from the temporary expanded development dataset so rerunning
+  // this seed restores the canonical fixture size.
+  const generatedStaff = await knex('staff').whereIn('staff_number', Array.from({ length: 12 }, (_, i) => `TCH/${String(i + 7).padStart(3, '0')}`)).select('id', 'user_id');
+  const generatedTeacherIds = generatedStaff.length
+    ? (await knex('teachers').whereIn('staff_id', generatedStaff.map((row) => row.id)).select('id')).map((row) => row.id)
+    : [];
+  if (generatedTeacherIds.length) await knex('teaching_assignments').whereIn('teacher_id', generatedTeacherIds).del();
+  if (generatedStaff.length) {
+    await knex('staff_role_assignments').whereIn('staff_id', generatedStaff.map((row) => row.id)).del();
+    await knex('teachers').whereIn('id', generatedTeacherIds).del();
+    await knex('staff').whereIn('id', generatedStaff.map((row) => row.id)).del();
+  }
+  const generatedStudentIds = (await knex('students').where('admission_number', '>=', 'SMS/2026/0117').select('id')).map((row) => row.id);
+  if (generatedStudentIds.length) {
+    const enrolmentIds = (await knex('enrolments').whereIn('student_id', generatedStudentIds).select('id')).map((row) => row.id);
+    if (enrolmentIds.length) {
+      await knex('attendance_records').whereIn('enrolment_id', enrolmentIds).del();
+      await knex('results').whereIn('enrolment_id', enrolmentIds).del();
+      await knex('enrolments').whereIn('id', enrolmentIds).del();
+    }
+    await knex('student_guardians').whereIn('student_id', generatedStudentIds).del();
+    await knex('students').whereIn('id', generatedStudentIds).del();
+  }
+  const generatedParentEmails = Array.from({ length: 8 }, (_, i) => `guardian${i + 5}@example.com`);
+  const generatedParentIds = (await knex('parents').whereIn('email', generatedParentEmails).select('id')).map((row) => row.id);
+  if (generatedParentIds.length) {
+    await knex('student_guardians').whereIn('parent_id', generatedParentIds).del();
+    await knex('parents').whereIn('id', generatedParentIds).del();
+  }
+  await knex('users').whereIn('email', generatedParentEmails).del();
+  const generatedStaffUserIds = generatedStaff.map((row) => row.user_id).filter(Boolean);
+  if (generatedStaffUserIds.length) await knex('users').whereIn('id', generatedStaffUserIds).del();
 
   // ---------------------------------------------------------------- admin
   const adminId = await ensureUser(knex, {

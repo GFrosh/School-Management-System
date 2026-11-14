@@ -268,6 +268,19 @@ export interface Teacher {
   email: string | null;
 }
 
+export type StaffType = 'teacher' | 'bursar' | 'librarian' | 'cleaner' | 'admin';
+
+export interface Staff {
+  id: string;
+  staffNumber: string;
+  name: string;
+  staffType: StaffType;
+  status: 'active' | 'inactive';
+  userId: string | null;
+  email: string | null;
+  teacherId: string | null;
+}
+
 export interface Guardian {
   id: string;
   parentId: string;

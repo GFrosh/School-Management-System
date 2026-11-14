@@ -10,6 +10,40 @@ class Phase2Repository {
       .orderBy("s.last_name").orderBy("s.first_name")
       .select("t.id", "t.staff_id", "t.employment_date", "s.user_id", "s.first_name", "s.middle_name", "s.last_name", "s.staff_number", "s.status", "u.email");
   }
+  listStaff() {
+    return db("staff as s")
+      .leftJoin("users as u", "s.user_id", "u.id")
+      .leftJoin("staff_role_assignments as sra", function () {
+        this.on("sra.staff_id", "=", "s.id").andOnNull("sra.ended_at");
+      })
+      .leftJoin("staff_roles as sr", "sr.id", "sra.staff_role_id")
+      .leftJoin("teachers as t", "t.staff_id", "s.id")
+      .orderBy("s.last_name").orderBy("s.first_name")
+      .select("s.id", "s.user_id", "s.first_name", "s.middle_name", "s.last_name", "s.staff_number", "s.status", "s.employment_date", "u.email", "sr.name as staff_type", "t.id as teacher_id");
+  }
+  async createStaff(data) {
+    return db.transaction(async (trx) => {
+      const employmentDate = data.employment_date ? new Date(data.employment_date) : new Date();
+      const year = employmentDate.getUTCFullYear();
+      await trx.raw("select pg_advisory_xact_lock(hashtext(?))", [`staff-${year}`]);
+      const [{ count }] = await trx("staff")
+        .whereBetween("employment_date", [`${year}-01-01`, `${year + 1}-01-01`])
+        .count("id as count");
+      const staffNumber = `STF/${year}/${String(Number(count) + 1).padStart(4, "0")}`;
+      const [staff] = await trx("staff").insert({
+        first_name: data.first_name,
+        middle_name: data.middle_name || null,
+        last_name: data.last_name,
+        employment_date: data.employment_date || new Date(),
+        status: data.status || "active",
+        staff_number: staffNumber,
+      }).returning("*");
+      const role = await trx("staff_roles").where({ name: data.staff_type }).first("id", "name");
+      if (!role) throw new Error(`Unknown staff type: ${data.staff_type}`);
+      await trx("staff_role_assignments").insert({ staff_id: staff.id, staff_role_id: role.id, started_at: staff.employment_date });
+      return { ...staff, staff_type: role.name, email: null, teacher_id: null };
+    });
+  }
   async createTeacher(data) {
     return db.transaction(async (trx) => {
       const employmentDate = data.employment_date ? new Date(data.employment_date) : new Date();

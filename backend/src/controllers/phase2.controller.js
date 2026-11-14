@@ -15,6 +15,15 @@ module.exports = {
   deleteAssignment: ok(async req => { await service.deleteAssignment(req.params.id); return { deleted: true }; }),
   roster: ok(req => service.roster(req.params.id, req.user)),
   listTeachers: ok(() => service.listTeachers()),
+  listStaff: ok(() => service.listStaff()),
+  createStaff: ok(req => service.createStaff({
+    first_name: req.body.first_name || req.body.firstName,
+    last_name: req.body.last_name || req.body.lastName,
+    middle_name: req.body.middle_name ?? req.body.middleName,
+    staff_type: req.body.staff_type,
+    employment_date: req.body.employment_date,
+    status: req.body.status,
+  }), 201),
   createTeacher: ok(req => service.createTeacher({
     first_name: req.body.first_name || req.body.firstName || req.body.name?.split(" ")[0],
     last_name: req.body.last_name || req.body.lastName || req.body.name?.split(" ").slice(1).join(" "),

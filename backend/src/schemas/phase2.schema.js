@@ -64,6 +64,14 @@ const UpdateTeacherSchema = z.object({ body: z.object({
   employment_date: z.coerce.date().optional(), status: z.enum(["active", "on_leave", "inactive"]).optional(),
   user_id: uuid.optional(),
 }) });
+const StaffSchema = z.object({ body: z.object({
+  first_name: z.string().trim().min(1).optional(), firstName: z.string().trim().min(1).optional(),
+  last_name: z.string().trim().min(1).optional(), lastName: z.string().trim().min(1).optional(),
+  middle_name: optionalText, middleName: optionalText,
+  staff_type: z.enum(["cleaner", "bursar", "librarian", "admin"]),
+  employment_date: z.coerce.date().optional(),
+  status: z.enum(["active", "on_leave", "inactive"]).optional(),
+}).refine(v => (v.first_name || v.firstName) && (v.last_name || v.lastName)) });
 
 const UserStatusSchema = z.object({ body: z.object({
   status: z.enum(["active", "suspended", "deactivated"]),
@@ -79,6 +87,6 @@ const PromotionSchema = z.object({ body: z.object({
 
 module.exports = {
   SubjectSchema, AssignmentSchema, StudentSchema, UpdateStudentSchema, EnrolmentSchema,
-  CloseEnrolmentSchema, GuardianSchema, TeacherSchema, UpdateTeacherSchema, UserStatusSchema,
+  CloseEnrolmentSchema, GuardianSchema, TeacherSchema, StaffSchema, UpdateTeacherSchema, UserStatusSchema,
   PromotionSchema,
 };
