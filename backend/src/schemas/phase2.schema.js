@@ -52,11 +52,12 @@ const GuardianSchema = z.object({ body: z.object({
 }).refine(v => v.parent_id || v.parentId) });
 
 const TeacherSchema = z.object({ body: z.object({
-  first_name: z.string().trim().min(1).optional(), last_name: z.string().trim().min(1).optional(), name: z.string().trim().min(1).optional(),
+  first_name: z.string().trim().min(1).optional(), firstName: z.string().trim().min(1).optional(),
+  last_name: z.string().trim().min(1).optional(), lastName: z.string().trim().min(1).optional(), name: z.string().trim().min(1).optional(),
   middle_name: optionalText, staff_number: z.string().trim().min(1).optional(), staffNumber: z.string().trim().min(1).optional(),
   employment_date: z.coerce.date().optional(),
   status: z.enum(["active", "on_leave", "inactive"]).optional(), user_id: uuid.optional(),
-}).refine(v => (v.first_name || v.name) && (v.last_name || v.name)).refine(v => v.staff_number || v.staffNumber) });
+}).refine(v => (v.first_name || v.firstName || v.name) && (v.last_name || v.lastName || v.name)) });
 const UpdateTeacherSchema = z.object({ body: z.object({
   first_name: z.string().trim().min(1).optional(), middle_name: optionalText,
   last_name: z.string().trim().min(1).optional(), staff_number: z.string().trim().min(1).optional(),

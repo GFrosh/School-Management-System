@@ -23,6 +23,7 @@ import type {
   StudentListItem,
   StudentEnrolmentListItem,
   StudentAttendance,
+  AttendanceMark,
   StudentFilters,
   Subject,
   Teacher,
@@ -94,8 +95,60 @@ export const createAssignment = (body: AssignmentCreateValues) =>
   apiRequest<Assignment>('/teaching-assignments', { method: 'POST', body });
 export const deleteAssignment = (id: string) =>
   apiRequest<{ id: string }>(`/teaching-assignments/${id}`, { method: 'DELETE' });
-export const fetchRoster = (assignmentId: string) =>
-  apiRequest<RosterRow[]>(`/teaching-assignments/${assignmentId}/roster`);
+type RosterApiRow = {
+  enrolment_id?: string;
+  enrolmentId?: string;
+  student_id?: string;
+  studentId?: string;
+  name: string;
+  admission_number?: string;
+  admissionNumber?: string;
+};
+
+export const fetchRoster = async (assignmentId: string) => {
+  const response = await apiRequest<RosterApiRow[]>(`/teaching-assignments/${assignmentId}/roster`);
+  return {
+    ...response,
+    data: response.data.map((row): RosterRow => ({
+      enrolmentId: row.enrolmentId ?? row.enrolment_id ?? '',
+      studentId: row.studentId ?? row.student_id ?? '',
+      name: row.name,
+      admissionNumber: row.admissionNumber ?? row.admission_number ?? '',
+    })),
+  };
+};
+
+type RegisterApiRow = {
+  id: string | null;
+  teachingAssignmentId?: string;
+  teaching_assignment_id?: string;
+  date?: string;
+  attendance_date?: string;
+  periodNo?: number;
+  period_no?: number;
+  status: Register['status'];
+  present?: number;
+  absent?: number;
+  late?: number;
+  total?: number;
+  records?: Array<{ enrolmentId?: string; enrolment_id?: string; status: AttendanceMark | null }>;
+};
+
+const mapRegister = (row: RegisterApiRow): Register => ({
+  id: row.id ?? '',
+  teachingAssignmentId: row.teachingAssignmentId ?? row.teaching_assignment_id ?? '',
+  date: row.date ?? row.attendance_date ?? '',
+  periodNo: row.periodNo ?? row.period_no ?? 1,
+  status: row.status,
+  present: row.present ?? 0,
+  absent: row.absent ?? 0,
+  late: row.late ?? 0,
+  total: row.total ?? 0,
+  records: row.records?.map((record) => ({
+    enrolmentId: record.enrolmentId ?? record.enrolment_id ?? '',
+    status: record.status ?? null,
+  })),
+});
 
 /* 7.5 students, staff, guardians */
 export const fetchStudents = (filters: StudentFilters) =>
@@ -147,7 +200,7 @@ export const fetchTeachers = async () => {
   const response = await apiRequest<TeacherApiRow[]>('/teachers');
   return { ...response, data: response.data.map(mapTeacher) };
 };
-export const createTeacher = (body: { firstName: string; middleName?: string; lastName: string; staffNumber: string }) =>
+export const createTeacher = (body: { firstName: string; middleName?: string; lastName: string }) =>
   apiRequest<Teacher>('/teachers', { method: 'POST', body });
 export const fetchGuardians = (studentId: string) =>
   apiRequest<Guardian[]>(`/students/${studentId}/guardians`);
@@ -163,16 +216,17 @@ export const setAccountStatus = (userId: string, status: 'active' | 'suspended')
 
 /* 7.6 attendance */
 export const fetchRegister = (assignmentId: string, date: string, periodNo: number) =>
-  apiRequest<Register>('/attendance-registers', {
+  apiRequest<RegisterApiRow>('/attendance-registers', {
     query: { teachingAssignmentId: assignmentId, date, periodNo },
-  });
+  }).then((response) => ({ ...response, data: mapRegister(response.data) }));
 export const saveRegister = (body: {
   teachingAssignmentId: string;
   date: string;
   periodNo: number;
   status: 'draft';
   records: { enrolmentId: string; status: 'present' | 'absent' | 'late' }[];
-}) => apiRequest<Register>('/attendance-registers', { method: 'PUT', body });
+}) => apiRequest<RegisterApiRow>('/attendance-registers', { method: 'PUT', body })
+  .then((response) => ({ ...response, data: mapRegister(response.data) }));
 export const submitRegister = (id: string) =>
   apiRequest<Register>(`/attendance-registers/${id}/submit`, { method: 'POST' });
 export const fetchStudentAttendance = (studentId: string, range: { from?: string; to?: string } = {}) =>

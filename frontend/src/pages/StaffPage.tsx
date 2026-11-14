@@ -21,7 +21,6 @@ const teacherSchema = z.object({
   firstName: z.string().trim().min(1, 'First name is required'),
   middleName: z.string().trim().optional(),
   lastName: z.string().trim().min(1, 'Last name is required'),
-  staffNumber: z.string().min(3, 'Staff number is required'),
 });
 type TeacherValues = z.infer<typeof teacherSchema>;
 
@@ -35,9 +34,8 @@ export function StaffPage() {
     register,
     handleSubmit,
     reset,
-    setError,
     formState: { errors, isSubmitting },
-  } = useForm<TeacherValues>({ resolver: zodResolver(teacherSchema), defaultValues: { firstName: '', middleName: '', lastName: '', staffNumber: '' } });
+  } = useForm<TeacherValues>({ resolver: zodResolver(teacherSchema), defaultValues: { firstName: '', middleName: '', lastName: '' } });
 
   const columns: Column<Teacher>[] = [
     { key: 'name', header: 'Staff member', isRowHeader: true, render: (row) => row.name },
@@ -55,14 +53,10 @@ export function StaffPage() {
   const onSubmit = async (values: TeacherValues) => {
     try {
       await createTeacher.mutateAsync(values);
-      toast.push(`${values.firstName} ${values.lastName} was added to the staff register.`, 'success');
+      toast.push(`${values.firstName} ${values.lastName} was added to the staff register with an automatically generated staff number.`, 'success');
       setCreating(false);
       reset();
     } catch (error) {
-      if (error instanceof TypedApiError && error.details.some((d) => d.field === 'staffNumber')) {
-        setError('staffNumber', { message: 'That staff number is already in use.' });
-        return;
-      }
       toast.push(error instanceof TypedApiError ? error.message : 'The staff record was not created.', 'error');
     }
   };
@@ -108,7 +102,7 @@ export function StaffPage() {
           <Input label="First name" required error={errors.firstName?.message} {...register('firstName')} />
           <Input label="Middle name" hint="Optional" error={errors.middleName?.message} {...register('middleName')} />
           <Input label="Last name" required error={errors.lastName?.message} {...register('lastName')} />
-          <Input label="Staff number" required hint="e.g. STF/2026/031" error={errors.staffNumber?.message} {...register('staffNumber')} />
+          <p className={styles.muted}>The staff number is generated automatically from the employment year.</p>
         </form>
       </Modal>
     </>

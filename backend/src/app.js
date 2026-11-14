@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+
+// MIDDLEWARES
+const logger = require("./middlewares/logger");
 const requestId = require('./middlewares/requestId');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
@@ -19,6 +22,7 @@ const academicRouter = require("./routes/academic.route");
 const app = express();
 
 app.use(requestId);
+app.use(logger);
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true

@@ -46,7 +46,7 @@ export function TakeAttendancePage() {
     if (registerData?.records) {
       const next: MarkMap = {};
       registerData.records.forEach((record) => {
-        next[record.enrolmentId] = record.status;
+        if (record.status) next[record.enrolmentId] = record.status;
       });
       setMarks(next);
       setRegisterId(registerData.id);
@@ -73,6 +73,7 @@ export function TakeAttendancePage() {
       status: 'draft',
       records,
     });
+    if (!response.data.id) throw new Error('The saved register did not include an id.');
     setRegisterId(response.data.id);
     return response.data.id;
   };

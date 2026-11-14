@@ -18,7 +18,6 @@ module.exports = {
   createTeacher: ok(req => service.createTeacher({
     first_name: req.body.first_name || req.body.firstName || req.body.name?.split(" ")[0],
     last_name: req.body.last_name || req.body.lastName || req.body.name?.split(" ").slice(1).join(" "),
-    staff_number: req.body.staff_number || req.body.staffNumber,
     middle_name: req.body.middle_name ?? req.body.middleName, employment_date: req.body.employment_date,
     status: req.body.status, user_id: req.body.user_id,
   }), 201),

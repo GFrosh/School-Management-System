@@ -268,7 +268,7 @@ export interface RosterRow {
 
 export interface RegisterRecordRow {
   enrolmentId: string;
-  status: AttendanceMark;
+  status: AttendanceMark | null;
 }
 
 export interface Register {

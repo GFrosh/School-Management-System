@@ -20,6 +20,15 @@ module.exports = (err, req, res, next) => {
     status = 400;
     code = 'INVALID_JSON';
     message = 'Request body is not valid JSON';
+  } else if (err.name === 'ZodError') {
+    status = 422;
+    code = 'VALIDATION_FAILED';
+    message = 'Request validation failed';
+    details = err.issues.map((issue) => ({
+      field: issue.path.join('.'),
+      code: issue.code,
+      message: issue.message,
+    }));
   } else {
     console.error(err);
   }

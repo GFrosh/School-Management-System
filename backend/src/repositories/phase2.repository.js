@@ -3,8 +3,20 @@ const StudentRepository = require("./student.repository");
 
 class Phase2Repository {
   constructor() { this.students = new StudentRepository(); }
-  listTeachers() { return db("teachers").orderBy("last_name").orderBy("first_name"); }
-  async createTeacher(data) { const [row] = await db("teachers").insert(data).returning("*"); return row; }
+  listTeachers() { return db("teachers as t").orderBy("last_name").orderBy("first_name").join("users as u", "t.user_id", "u.id").select("t.*", "u.email"); }
+  async createTeacher(data) {
+    return db.transaction(async (trx) => {
+      const employmentDate = data.employment_date ? new Date(data.employment_date) : new Date();
+      const year = employmentDate.getUTCFullYear();
+      await trx.raw("select pg_advisory_xact_lock(hashtext(?))", [`teacher-staff-${year}`]);
+      const [{ count }] = await trx("teachers")
+        .whereBetween("employment_date", [`${year}-01-01`, `${year + 1}-01-01`])
+        .count("id as count");
+      const staffNumber = `TCH/${year}/${String(Number(count) + 1).padStart(4, "0")}`;
+      const [row] = await trx("teachers").insert({ ...data, employment_date: data.employment_date || new Date(), staff_number: staffNumber }).returning("*");
+      return row;
+    });
+  }
   async updateTeacher(id, data) { const [row] = await db("teachers").where({ id }).update({ ...data, updated_at: db.fn.now() }).returning("*"); return row; }
   async createStudent(data) {
     return db.transaction(async (trx) => {
