@@ -20,6 +20,7 @@ const userSchema = z.object({
   profileKey: z.string().min(1, 'Select an existing profile'),
   email: z.string().email('Enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters').regex(/[A-Z]/, 'Password must contain an uppercase letter'),
+  systemRole: z.enum(['admin', 'teacher', 'student', 'parent']).optional(),
 });
 type UserValues = z.infer<typeof userSchema>;
 
@@ -38,7 +39,7 @@ export function UsersPage() {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<UserValues>({ resolver: zodResolver(userSchema), defaultValues: { profileKey: '', email: '', password: '' } });
+  } = useForm<UserValues>({ resolver: zodResolver(userSchema), defaultValues: { profileKey: '', email: '', password: '', systemRole: undefined } });
   const selectedProfile = availableProfiles.find((profile) => `${profile.profileType}:${profile.profileId}` === watch('profileKey'));
 
   const columns: Column<AccountProfile>[] = [
@@ -56,7 +57,13 @@ export function UsersPage() {
     const profile = availableProfiles.find((item) => `${item.profileType}:${item.profileId}` === values.profileKey);
     if (!profile) return;
     try {
-      await createUser.mutateAsync({ profileType: profile.profileType, profileId: profile.profileId, email: values.email, password: values.password });
+      await createUser.mutateAsync({
+        profileType: profile.profileType,
+        profileId: profile.profileId,
+        email: values.email,
+        password: values.password,
+        systemRole: profile.profileType === 'staff' ? values.systemRole : undefined,
+      });
       toast.push(`Login created for ${profile.name}.`, 'success');
       setCreating(false);
       reset();
@@ -69,7 +76,7 @@ export function UsersPage() {
     <>
       <PageHeader
         title="User accounts"
-        description="Create login credentials for an existing parent, teacher, or student profile. This does not create a duplicate school profile."
+        description="Create login credentials for an existing school profile. Employment roles and login permissions are managed separately."
         actions={<Button variant="primary" onClick={() => setCreating(true)} disabled={availableProfiles.length === 0}>Create user account</Button>}
       />
       {profiles.isLoading ? <Skeleton rows={8} /> : profiles.isError ? <ErrorState error={profiles.error} onRetry={() => void profiles.refetch()} /> : (
@@ -94,6 +101,15 @@ export function UsersPage() {
             {availableProfiles.map((profile) => <option key={`${profile.profileType}:${profile.profileId}`} value={`${profile.profileType}:${profile.profileId}`}>{profileLabel(profile.profileType)} — {profile.name}</option>)}
           </Select>
           {selectedProfile ? <p className={styles.muted}>This account will receive the {profileLabel(selectedProfile.profileType).toLowerCase()} role.</p> : null}
+          {selectedProfile?.profileType === 'staff' ? (
+            <Select label="System permission" required error={errors.systemRole?.message} {...register('systemRole')}>
+              <option value="">Select a permission</option>
+              <option value="admin">Administrator</option>
+              <option value="teacher">Teacher</option>
+              <option value="parent">Parent</option>
+              <option value="student">Student</option>
+            </Select>
+          ) : null}
           <Input label="Login email" type="email" required error={errors.email?.message} {...register('email')} />
           <Input label="Temporary password" type="password" required hint="At least 8 characters and one uppercase letter." error={errors.password?.message} {...register('password')} />
         </form>

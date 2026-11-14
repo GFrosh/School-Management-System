@@ -4,7 +4,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 async function assignment(id, user, trx = db) {
   let q = trx('teaching_assignments as ta').join('terms as t', 't.id', 'ta.term_id').where('ta.id', id).select('ta.*', 't.session_id').first();
-  if (user.roles.includes('teacher') && !user.roles.includes('admin')) q = q.join('teachers as th', 'th.id', 'ta.teacher_id').where('th.user_id', user.sub);
+  if (user.roles.includes('teacher') && !user.roles.includes('admin')) q = q.join('teachers as th', 'th.id', 'ta.teacher_id').join('staff as sth', 'sth.id', 'th.staff_id').where('sth.user_id', user.sub);
   return q;
 }
 async function roster(id, user, trx = db) {
@@ -17,7 +17,7 @@ async function canStudent(studentId, user, trx = db) {
   if (user.roles.includes('admin')) return true;
   if (user.roles.includes('student')) return !!(await trx('students').where({ id: studentId, user_id: user.sub }).first());
   if (user.roles.includes('parent')) return !!(await trx('student_guardians as sg').join('parents as p', 'p.id', 'sg.parent_id').where({ 'sg.student_id': studentId, 'p.user_id': user.sub }).first());
-  if (user.roles.includes('teacher')) return !!(await trx('enrolments as e').join('teaching_assignments as ta', 'ta.class_id', 'e.class_id').join('terms as t', 't.id', 'ta.term_id').join('teachers as th', 'th.id', 'ta.teacher_id').where({ 'e.student_id': studentId, 'th.user_id': user.sub, 'e.status': 'active' }).andWhereRaw('e.session_id = t.session_id').first());
+  if (user.roles.includes('teacher')) return !!(await trx('enrolments as e').join('teaching_assignments as ta', 'ta.class_id', 'e.class_id').join('terms as t', 't.id', 'ta.term_id').join('teachers as th', 'th.id', 'ta.teacher_id').join('staff as sth', 'sth.id', 'th.staff_id').where({ 'e.student_id': studentId, 'sth.user_id': user.sub, 'e.status': 'active' }).andWhereRaw('e.session_id = t.session_id').first());
   return false;
 }
 const registerShape = (r, rows) => {
@@ -66,7 +66,7 @@ async function studentAttendance(studentId, q, user) {
 async function listAssessments(q, user) {
   let query = db('assessments as a').join('teaching_assignments as ta', 'ta.id', 'a.teaching_assignment_id').whereNotNull('a.id');
   if (q.teachingAssignmentId) query = query.where('ta.id', q.teachingAssignmentId); if (q.termId) query = query.where('a.term_id', q.termId);
-  if (user.roles.includes('teacher') && !user.roles.includes('admin')) query = query.join('teachers as th', 'th.id', 'ta.teacher_id').where('th.user_id', user.sub);
+  if (user.roles.includes('teacher') && !user.roles.includes('admin')) query = query.join('teachers as th', 'th.id', 'ta.teacher_id').join('staff as sth', 'sth.id', 'th.staff_id').where('sth.user_id', user.sub);
   return (await query.select('a.*')).map((x) => ({ ...x, teachingAssignmentId: x.teaching_assignment_id, termId: x.term_id, maximumScore: Number(x.maximum_score), weight: Number(x.weight) }));
 }
 async function createAssessment(body, user) {

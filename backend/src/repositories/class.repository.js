@@ -4,6 +4,7 @@ class ClassRepository {
     async getClasses(teacherId) {
         const query = db("classes as c")
             .leftJoin("teachers as t", "t.id", "c.class_teacher_id")
+            .leftJoin("staff as ts", "ts.id", "t.staff_id")
             .leftJoin("enrolments as e", function () {
                 this.on("e.class_id", "c.id")
                     .andOn("e.status", db.raw("?", ["active"]))
@@ -18,7 +19,7 @@ class ClassRepository {
                 "c.name",
                 "c.level",
                 "c.class_teacher_id",
-                db.raw("nullif(concat_ws(' ', t.first_name, t.last_name), '') as class_teacher_name"),
+                db.raw("nullif(concat_ws(' ', ts.first_name, ts.last_name), '') as class_teacher_name"),
                 "c.created_at",
                 "c.updated_at",
                 db.raw("count(distinct e.student_id)::int as headcount"),
@@ -28,8 +29,8 @@ class ClassRepository {
                 "c.name",
                 "c.level",
                 "c.class_teacher_id",
-                "t.first_name",
-                "t.last_name",
+                "ts.first_name",
+                "ts.last_name",
                 "c.created_at",
                 "c.updated_at",
             )

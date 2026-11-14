@@ -17,10 +17,11 @@ class AssignmentRepository {
   list(teacherId, filters = {}) {
     const q = db("teaching_assignments as ta")
       .join("teachers as t", "t.id", "ta.teacher_id")
+      .join("staff as ts", "ts.id", "t.staff_id")
       .join("classes as c", "c.id", "ta.class_id")
       .join("subjects as s", "s.id", "ta.subject_id")
       .join("terms as tr", "tr.id", "ta.term_id")
-      .select("ta.*", "t.first_name as teacher_first_name", "t.last_name as teacher_last_name",
+      .select("ta.*", "ts.first_name as teacher_first_name", "ts.last_name as teacher_last_name",
         "c.name as class_name", "s.code as subject_code", "s.name as subject_name",
         "tr.name as term_name", "tr.session_id");
     if (teacherId) q.where("ta.teacher_id", teacherId);

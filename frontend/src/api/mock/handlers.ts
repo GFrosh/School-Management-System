@@ -199,6 +199,11 @@ export async function mockRequest(
     if (role === 'parent') account.profiles.parentId = profileId;
     if (role === 'teacher') account.profiles.teacherId = profileId;
     if (role === 'student') account.profiles.studentId = profileId;
+    if (profileType === 'staff') {
+      const selectedRole = String(payload.systemRole ?? '');
+      if (!['admin', 'teacher', 'student', 'parent'].includes(selectedRole)) return fail(422, 'VALIDATION_FAILED', 'A system permission is required for a staff account.');
+      account.roles = [selectedRole as MockState['users'][number]['roles'][number]];
+    }
     state.users.push(account);
     profile.userId = id;
     return ok({ id, email, status: 'active', profileType, profileId, name: profile.name, role }, 201);

@@ -106,6 +106,9 @@ async function createUserFromProfile(data) {
     if (error.code === 'PROFILE_ALREADY_LINKED') {
       throw ApiResponse.error(409, 'CONFLICT', error.message);
     }
+    if (error.code === 'SYSTEM_ROLE_REQUIRED' || error.code === 'INVALID_SYSTEM_ROLE') {
+      throw ApiResponse.error(422, 'VALIDATION_FAILED', error.message);
+    }
     throw error;
   }
 }

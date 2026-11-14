@@ -2,7 +2,7 @@
  * 04 — People: accounts and profile records.
  *
  * Depends on: roles (via user_roles), nothing else.
- * Names live on the profile tables (students, teachers, parents, staff_profiles), never on users.
+ * Names live on school records (students, parents, staff), never on users.
  * Enforces: users.status_check, students.staff/teacher status_check,
  *           admission_number / staff_number UNIQUE, students.user_id UNIQUE
  *           (nullable), student_guardians UNIQUE (student_id, parent_id) [C12],
@@ -125,23 +125,29 @@ exports.seed = async function seed(knex) {
   });
   await grantRoles(knex, adminId, ADMIN.roles, roles);
 
-  // Admins have no domain profile, so their name lives in staff_profiles.
-  await knex('staff_profiles')
+  // Employment records are independent from login accounts.
+  const [adminStaff] = await knex('staff')
     .insert({
       user_id: adminId,
       first_name: ADMIN.first_name,
       middle_name: ADMIN.middle_name || null,
       last_name: ADMIN.last_name,
+      staff_number: 'STF/ADMIN/0001',
+      status: 'active',
     })
     .onConflict('user_id')
-    .merge(['first_name', 'middle_name', 'last_name', 'updated_at']);
+    .merge(['first_name', 'middle_name', 'last_name', 'updated_at'])
+    .returning(['id']);
+  const adminStaffId = adminStaff?.id ?? (await knex('staff').where({ user_id: adminId }).first('id')).id;
+  const adminStaffRole = await knex('staff_roles').where({ name: 'admin' }).first('id');
+  await knex('staff_role_assignments').insert({ staff_id: adminStaffId, staff_role_id: adminStaffRole.id }).onConflict().ignore();
 
   // -------------------------------------------------------------- teachers
   for (const t of TEACHERS) {
     const userId = await ensureUser(knex, { email: t.email });
     await grantRoles(knex, userId, t.roles, roles);
 
-    await knex('teachers')
+    const [staff] = await knex('staff')
       .insert({
         user_id: userId,
         first_name: t.first_name,
@@ -149,9 +155,18 @@ exports.seed = async function seed(knex) {
         last_name: t.last_name,
         staff_number: t.staff_number,
         employment_date: t.employment_date,
+        status: 'active',
       })
       .onConflict('staff_number')
-      .merge(['user_id', 'first_name', 'middle_name', 'last_name', 'employment_date', 'updated_at']);
+      .merge(['user_id', 'first_name', 'middle_name', 'last_name', 'employment_date', 'updated_at'])
+      .returning(['id']);
+    const staffId = staff?.id ?? (await knex('staff').where({ staff_number: t.staff_number }).first('id')).id;
+    await knex('teachers')
+      .insert({ staff_id: staffId, employment_date: t.employment_date, status: 'active' })
+      .onConflict('staff_id')
+      .merge(['employment_date', 'status', 'updated_at']);
+    const teacherRole = await knex('staff_roles').where({ name: 'teacher' }).first('id');
+    await knex('staff_role_assignments').insert({ staff_id: staffId, staff_role_id: teacherRole.id, started_at: t.employment_date }).onConflict().ignore();
   }
 
   // -------------------------------------------------------------- students

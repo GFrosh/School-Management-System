@@ -61,6 +61,7 @@ export interface User {
     teacherId: string | null;
     parentId: string | null;
     studentId: string | null;
+    staffId?: string | null;
   };
 }
 
@@ -73,6 +74,7 @@ export interface AccountProfile {
   name: string;
   email: string | null;
   canCreate: boolean;
+  staffRole?: string | null;
 }
 
 export interface CreatedUserAccount {

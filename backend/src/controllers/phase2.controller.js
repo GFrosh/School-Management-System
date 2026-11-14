@@ -23,7 +23,7 @@ module.exports = {
   }), 201),
   updateTeacher: ok(req => service.updateTeacher(req.params.id, {
     first_name: req.body.first_name, middle_name: req.body.middle_name,
-    last_name: req.body.last_name, staff_number: req.body.staff_number,
+    last_name: req.body.last_name, user_id: req.body.user_id,
     employment_date: req.body.employment_date, status: req.body.status, user_id: req.body.user_id,
   })),
   createStudent: ok(req => service.createStudent({

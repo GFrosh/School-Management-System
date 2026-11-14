@@ -1,11 +1,13 @@
 erDiagram
     users ||--o| students : "account for"
-    users ||--o| teachers : "account for"
+    users ||--o| staff : "account for"
     users ||--o| parents  : "account for"
-    users ||--o| staff_profiles : "account for"
     users ||--o{ user_roles : "is granted"
     users ||--o{ refresh_tokens : "owns"
     roles ||--o{ user_roles : "grants"
+    staff ||--o| teachers : "has teaching profile"
+    staff ||--o{ staff_role_assignments : "holds"
+    staff_roles ||--o{ staff_role_assignments : "describes"
  
     students ||--o{ student_guardians : "has"
     parents  ||--o{ student_guardians : "guards"

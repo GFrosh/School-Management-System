@@ -40,7 +40,7 @@ const ASSIGNMENTS = [
  */
 exports.seed = async function seed(knex) {
   const teachers = new Map(
-    (await knex('teachers').select('id', 'staff_number')).map((r) => [r.staff_number, r.id]),
+    (await knex('teachers as t').join('staff as s', 's.id', 't.staff_id').select('t.id', 's.staff_number')).map((r) => [r.staff_number, r.id]),
   );
   const classes = new Map(
     (await knex('classes').select('id', 'name')).map((r) => [r.name, r.id]),

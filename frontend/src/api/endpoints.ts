@@ -62,6 +62,7 @@ export const createUserFromProfile = (body: {
   profileId: string;
   email: string;
   password: string;
+  systemRole?: 'admin' | 'teacher' | 'student' | 'parent';
 }) => apiRequest<CreatedUserAccount>('/users/from-profile', { method: 'POST', body });
 
 /* 7.4 academic structure */

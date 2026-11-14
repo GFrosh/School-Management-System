@@ -60,6 +60,19 @@ Set `VITE_USE_MOCKS=false` when the frontend should call the backend instead of
 the in-browser mock API. The frontend expects the API under `/api/v1`; configure
 the Vite development proxy or a reverse proxy accordingly.
 
+## People, accounts, and staff records
+
+Authentication and school records are separate:
+
+- `users` contains only login credentials and account state.
+- `students` and `parents` may exist without a login account.
+- `staff` contains general personnel records and has a nullable `user_id`.
+- `teachers` is the teaching-specific extension of `staff`; academic tables continue to reference `teachers.id`.
+- `staff_roles` and `staff_role_assignments` describe employment responsibilities such as teacher, cleaner, administrator, or bursar.
+- `roles` and `user_roles` remain application permissions and must not be inferred from an employment role.
+
+Creating a staff or teacher record does not create a login. Login creation is a separate, administrator-controlled operation.
+
 ## Verification commands
 
 ```powershell

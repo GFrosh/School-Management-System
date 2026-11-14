@@ -31,6 +31,13 @@ by the authentication middleware and require the role listed below.
 | POST | `/users/password` | Authenticated |
 | GET | `/users` | Admin |
 | PATCH | `/users/:id/status` | Admin |
+| GET | `/users/profiles` | Admin |
+| POST | `/users/from-profile` | Admin |
+
+`users` are login accounts only. Parent, student, and staff records may exist
+without an account. Staff employment roles are stored separately from
+application roles; creating an account from a staff record requires an explicit
+system role.
 
 ## Students and enrolments
 
@@ -77,6 +84,11 @@ by the authentication middleware and require the role listed below.
 
 Assignments are returned with nested `teacher`, `class`, `subject`, and `term`
 objects. A teacher can only access assignments and rosters within their scope.
+
+Teacher records are teaching-specific extensions of general `staff` records.
+Staff names, staff numbers, employment status, and nullable account links are
+stored on `staff`; `staff_roles` and `staff_role_assignments` store employment
+responsibilities independently from `roles` and `user_roles`.
 
 ## Guardians
 
