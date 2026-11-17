@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: schoolmanagement-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    extra_hosts:
+      # Allows the container to reach localhost on your host machine if using LOCAL_DB_URL
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api/v1}
+        VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
+    container_name: schoolmanagement-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
