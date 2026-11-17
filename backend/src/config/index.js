@@ -2,10 +2,10 @@ const path = require('path');
 const dotenvPath = path.join(__dirname, '../../.env');
 require('dotenv').config({ path: dotenvPath });
 
-
 module.exports = {
   port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   databaseUrl: process.env.DB_URL,
   localDatabaseUrl: process.env.LOCAL_DB_URL,
   adminEmail: process.env.DB_ADMIN_EMAIL,
